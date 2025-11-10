@@ -1,0 +1,101 @@
+url: https://tgerke.github.io/metabasket/
+template:
+  bootstrap: 5
+  bootswatch: flatly
+
+home:
+  title: metabasket - Unified Framework for Basket Trial Design
+  description: >
+    Provides a consistent interface for designing, simulating, and analyzing 
+    basket trials using multiple established methods.
+
+# Logo (pkgdown will automatically find man/figures/logo.png)
+
+reference:
+  - title: "Design Functions"
+    desc: "Functions for creating basket trial designs"
+    contents:
+      - basket_design
+      - simon_design
+      - basket_data
+      - print.basket_design
+      - print.basket_data
+      - calculate_sample_size
+  
+  - title: "Simulation Functions"
+    desc: "Functions for simulating basket trials"
+    contents:
+      - simulate_responses
+      - simulate_basket_trial
+      - compute_operating_characteristics
+      - extract_rejections
+      - compare_designs
+      - create_scenario
+      - print.design_comparison
+      - print.simulation_results
+  
+  - title: "Analysis Functions"
+    desc: "Functions for analyzing basket trial data"
+    contents:
+      - analyze_basket
+      - starts_with("analyze_basket.")
+      - starts_with("extract_rejections.")
+      - print.cunanan_result
+      - print.simon_result
+      - print.bma_result
+      - print.mem_result
+      - print.bhm_result
+  
+  - title: "Protocol Functions"
+    desc: "Functions for generating protocol language"
+    contents:
+      - generate_protocol_language
+      - export_protocol_language
+  
+  - title: "Example Datasets"
+    desc: "Published basket trial data"
+    contents:
+      - imatinib_trial
+      - vemurafenib_trial
+
+articles:
+  - title: "Getting Started"
+    contents:
+      - introduction
+  - title: "Advanced Topics"
+    contents:
+      - design_comparison
+      - drug_combination_trial
+  
+navbar:
+  structure:
+    left:  [home, reference, articles, news]
+    right: [github]
+  components:
+    home:
+      icon: fas fa-home
+      href: index.html
+      aria-label: Home
+    reference:
+      text: Reference
+      href: reference/index.html
+    articles:
+      text: Articles
+      menu:
+      - text: Introduction to metabasket
+        href: articles/introduction.html
+      - text: Comparing Basket Trial Designs
+        href: articles/design_comparison.html
+      - text: "Drug Combination Trial: A Practical Example"
+        href: articles/drug_combination_trial.html
+    news:
+      text: News
+      href: news/index.html
+    github:
+      icon: fab fa-github
+      href: https://github.com/tgerke/metabasket
+      aria-label: GitHub
+
+authors:
+  Travis Gerke:
+    href: https://github.com/tgerke

@@ -1,11 +1,40 @@
 Package: metabasket
-Title: What the Package Does (One Line, Title Case)
+Title: Unified Framework for Basket Trial Design and Comparison
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    person("Travis", "Gerke", , "tgerke@mail.harvard.edu", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-9500-8907"))
+Description: Provides a unified interface for designing, simulating, and analyzing 
+    basket trials using multiple established methods. The package wraps existing 
+    implementations (bmabasket, basket, bhmbasket, clinfun::ph2simon) and provides consistent functions 
+    for comparing operating characteristics and generating protocol language. 
+    Basket trials evaluate a single therapy across multiple cancer types or subtypes 
+    simultaneously.
+License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
+Imports:
+    stats,
+    future,
+    furrr,
+    progressr
+Suggests:
+    bmabasket,
+    basket,
+    bhmbasket,
+    rjags,
+    doFuture,
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    ggplot2,
+    dplyr,
+    clinfun
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+URL: https://tgerke.github.io/metabasket, https://github.com/tgerke/metabasket
+BugReports: https://github.com/tgerke/metabasket/issues
+LazyData: true
+Depends: 
+    R (>= 4.0.0)

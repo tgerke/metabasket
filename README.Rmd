@@ -1,0 +1,362 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# metabasket <a href="https://tgerke.github.io/metabasket/"><img src="man/figures/logo.jpg" align="right" height="130" alt="metabasket website" /></a>
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/tgerke/metabasket/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/tgerke/metabasket/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/tgerke/metabasket/branch/main/graph/badge.svg)](https://app.codecov.io/gh/tgerke/metabasket?branch=main)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+<!-- badges: end -->
+
+## Overview
+
+**metabasket** provides a unified interface for designing, simulating, and analyzing basket trials using multiple established statistical methods. Basket trials evaluate a single therapy across multiple cancer types or subtypes simultaneously, and can benefit from information borrowing across baskets to improve efficiency and power.
+
+The package wraps existing implementations and provides:
+
+- **Consistent interface** for comparing different basket trial designs
+- **Simulation framework** for evaluating operating characteristics
+- **Protocol language generation** for study documentation
+- **Benchmark testing** against published results
+
+## Supported Methods
+
+```{r methods_table, echo=FALSE}
+methods_df <- data.frame(
+  Method = c("Bayesian Model Averaging (BMA)", 
+             "Multi-source Exchangeability (MEM)", 
+             "Bayesian Hierarchical Model (BHM)", 
+             "Efficient Basket Design",
+             "Simon Two-Stage"),
+  Package = c("`bmabasket`", "`basket`", "`bhmbasket`", "Native", "`clinfun`"),
+  Reference = c("Psioda et al. (2021)", 
+                "Hobbs & Landin (2018), Kaizer et al. (2018)", 
+                "Berry et al. (2013), Neuenschwander et al. (2016)",
+                "Cunanan et al. (2017)",
+                "Simon (1989)"),
+  `Key Features` = c("Averages over models with different basket partitions",
+                     "Learns basket exchangeability from data",
+                     "Shrinks basket estimates toward global mean",
+                     "Two-stage design with interim heterogeneity test",
+                     "Independent parallel designs (reference comparator)"),
+  check.names = FALSE
+)
+
+knitr::kable(methods_df, format = "markdown")
+```
+
+## Installation
+
+You can install the development version from GitHub:
+
+```r
+# install.packages("devtools")
+devtools::install_github("tgerke/metabasket")
+```
+
+## Quick Start
+
+```{r quickstart}
+library(metabasket)
+
+# Define a basket trial design
+design <- basket_design(
+  n_baskets = 4,
+  basket_names = c("NSCLC", "SCLC", "Melanoma", "RCC"),
+  sample_sizes = 25,
+  response_rates = c(0.35, 0.35, 0.35, 0.35),
+  null_response_rates = 0.20,
+  design_type = "cunanan"
+)
+
+# View the design
+print(design)
+```
+
+```{r simulate_example}
+# Simulate trial data
+set.seed(123)
+sims <- simulate_responses(design, n_sims = 5)
+
+# Look at first simulation
+sims[[1]]
+```
+
+```{r protocol}
+# Generate protocol language
+protocol_text <- generate_protocol_language(design)
+cat(protocol_text)
+```
+
+## Cunanan Efficient Design
+
+The Cunanan design uses a two-stage adaptive approach with an interim test of homogeneity:
+
+```{r cunanan_example}
+# Design for 5 baskets
+design_cunanan <- basket_design(
+  n_baskets = 5,
+  sample_sizes = c(7, 7, 7, 7, 7),  # Stage 1
+  null_response_rates = 0.15,
+  response_rates = 0.45,
+  design_type = "cunanan",
+  design_params = list(
+    r_s = 1,      # Min responses to continue basket (heterogeneous path)
+    r_c = 5,      # Min total responses to continue (homogeneous path)
+    n2 = 15,      # Stage 2 sample size per basket
+    gamma = 0.52, # Heterogeneity threshold
+    alpha_s = 0.07, # Separate analysis alpha
+    alpha_c = 0.05  # Combined analysis alpha
+  )
+)
+
+# Stage 1 data
+stage1 <- basket_data(
+  basket_names = paste0("Basket", 1:5),
+  n_patients = c(7, 7, 7, 7, 7),
+  n_responses = c(4, 4, 1, 0, 1)
+)
+
+# Interim analysis
+interim <- analyze_basket(stage1, design_cunanan)
+print(interim)
+```
+
+## Simon Two-Stage Design (Reference Comparator)
+
+The Simon design analyzes each basket independently without information borrowing:
+
+```{r simon_example}
+# Design with parallel Simon designs
+design_simon <- simon_design(
+  n_baskets = 4,
+  basket_names = c("NSCLC", "SCLC", "Melanoma", "RCC"),
+  sample_sizes = 25,
+  null_response_rates = 0.20,
+  alternative_response_rates = 0.40,
+  alpha = 0.05 / 4,  # Bonferroni correction for FWER control
+  beta = 0.20
+)
+
+print(design_simon)
+
+# Stage 1 data
+stage1 <- basket_data(
+  basket_names = paste0("Basket", 1:4),
+  n_patients = c(12, 12, 12, 12),
+  n_responses = c(6, 2, 5, 1)
+)
+
+# Interim analysis (checks futility per basket)
+interim <- analyze_basket(stage1, design_simon)
+print(interim)
+```
+
+## Bayesian Model Averaging (BMA)
+
+The BMA design uses Bayesian model averaging over all possible partitions of baskets, providing flexible, data-driven information borrowing:
+
+```{r bma_example}
+# BMA design for 4 baskets
+library(bmabasket)
+design_bma <- basket_design(
+  n_baskets = 4,
+  basket_names = c("NSCLC", "SCLC", "Melanoma", "RCC"),
+  sample_sizes = 25,
+  null_response_rates = 0.20,
+  design_type = "bma",
+  design_params = list(
+    mu0 = 0.5,  # Prior mean
+    phi0 = 1,   # Prior dispersion (1 = uninformative)
+    pmp0 = 1,   # Model prior parameter (1 = default, 0 = uniform)
+    post_prob_threshold = 0.95  # Posterior prob threshold for efficacy
+  )
+)
+
+print(design_bma)
+
+# Data
+bma_data <- basket_data(
+  basket_names = c("NSCLC", "SCLC", "Melanoma", "RCC"),
+  n_patients = c(25, 25, 25, 25),
+  n_responses = c(8, 12, 6, 10)
+)
+
+# BMA analysis
+result_bma <- analyze_basket(bma_data, design_bma)
+print(result_bma)
+
+# Extract rejections
+rejections <- extract_rejections(result_bma)
+print(rejections)
+```
+
+## Multi-source Exchangeability Model (MEM)
+
+The MEM design learns the exchangeability structure from the data, borrowing information between similar baskets while protecting against borrowing from dissimilar baskets:
+
+```{r mem_example}
+# MEM design for 4 baskets
+library(basket)
+design_mem <- basket_design(
+  n_baskets = 4,
+  basket_names = c("NSCLC", "SCLC", "Melanoma", "RCC"),
+  sample_sizes = 25,
+  null_response_rates = 0.20,
+  design_type = "mem",
+  design_params = list(
+    shape1 = 0.5,  # Beta prior shape parameter 1
+    shape2 = 0.5,  # Beta prior shape parameter 2
+    hpd_alpha = 0.05  # HPD credible interval level
+  )
+)
+
+print(design_mem)
+
+# Data
+mem_data <- basket_data(
+  basket_names = c("NSCLC", "SCLC", "Melanoma", "RCC"),
+  n_patients = c(25, 25, 25, 25),
+  n_responses = c(8, 12, 6, 10)
+)
+
+# MEM analysis
+result_mem <- analyze_basket(mem_data, design_mem)
+print(result_mem)
+
+# Extract rejections
+rejections <- extract_rejections(result_mem)
+print(rejections)
+```
+
+### Bayesian Hierarchical Model (BHM)
+
+BHM methods from Berry et al. (2013) and Neuenschwander et al. (2016) use MCMC to estimate posterior distributions with hierarchical borrowing:
+
+```{r bhm_example, eval=FALSE}
+# Note: Requires JAGS installation (https://mcmc-jags.sourceforge.io/)
+design_bhm <- basket_design(
+  design_type = "bhm",
+  n_baskets = 3,
+  sample_sizes = 25,
+  null_response_rates = 0.15,
+  design_params = list(
+    method = "berry",              # Options: "berry", "exnex", "exnex_adj", "pooled", "stratified"
+    n_mcmc_iterations = 10000,     # MCMC iterations
+    evidence_level = 0.1           # Alpha level for decisions
+  )
+)
+
+bhm_data <- basket_data(
+  n_patients = c(25, 25, 25),
+  n_responses = c(10, 12, 8),
+  basket_names = c("Basket A", "Basket B", "Basket C")
+)
+
+result_bhm <- analyze_basket(bhm_data, design_bhm)
+print(result_bhm)
+
+# Extract rejections
+rejections <- extract_rejections(result_bhm)
+print(rejections)
+```
+
+**System Requirements:** BHM analysis requires JAGS (Just Another Gibbs Sampler) to be installed on your system. Download from <https://mcmc-jags.sourceforge.io/>. After installing JAGS, install the R package: `install.packages("rjags")`.
+
+## Analyzing Real Data
+
+```{r real_data}
+# Load included example data
+data("imatinib_trial", package = "metabasket")
+print(imatinib_trial)
+
+# Summary statistics
+summary_df <- data.frame(
+  Basket = imatinib_trial$basket_names,
+  N = imatinib_trial$n_patients,
+  Responses = imatinib_trial$n_responses,
+  `Response Rate` = sprintf("%.1f%%", 
+                            100 * imatinib_trial$n_responses / imatinib_trial$n_patients),
+  check.names = FALSE
+)
+
+knitr::kable(summary_df, align = c("l", "r", "r", "r"))
+```
+
+## Key Features
+
+### Consistent Interface
+
+All methods use the same workflow:
+
+1. Define design with `basket_design()` or `simon_design()`
+2. Simulate data with `simulate_responses()` or provide real data with `basket_data()`
+3. Analyze with `analyze_basket()` (method-specific)
+4. Compute operating characteristics with `simulate_basket_trial()`
+
+### Protocol Language Generation
+
+Automatically generate standardized protocol text:
+
+```{r protocol_gen, eval=FALSE}
+protocol_text <- generate_protocol_language(
+  design,
+  include_statistical_details = TRUE,
+  include_references = TRUE
+)
+
+# Export to file
+export_protocol_language(design, file = "protocol_section.md")
+```
+
+## References
+
+### Key Papers
+
+**Review:**
+- Zhou T, Ji Y. Bayesian Methods for Information Borrowing in Basket Trials: An Overview. *Cancers*. 2024;16(2):251. [PMC10813856](https://pmc.ncbi.nlm.nih.gov/articles/PMC10813856/)
+
+**Methods:**
+1. **BMA**: Psioda MA, et al. Bayesian adaptive basket trial design using model averaging. *Biostatistics*. 2021;22(1):19-34.
+2. **MEM**: Hobbs BP, Landin R. Bayesian basket trial design with exchangeability monitoring. *Stat Med*. 2018;37(25):3557-3572.
+3. **EXNEX**: Neuenschwander B, et al. Robust exchangeability designs for early phase clinical trials. *Pharm Stat*. 2016;15(2):123-134.
+4. **BHM**: Berry SM, et al. Bayesian hierarchical modeling of patient subpopulations. *Clin Trials*. 2013;10(5):720-734.
+5. **Cunanan**: Cunanan KM, et al. An efficient basket trial design. *Stat Med*. 2017;36(10):1568-1579.
+6. **Simon**: Simon R. Optimal two-stage designs for phase II clinical trials. *Control Clin Trials*. 1989;10(1):1-10.
+
+**Trial Examples:**
+- Chugh R, et al. Phase II multicenter trial of imatinib in 10 histologic subtypes of sarcoma. *J Clin Oncol*. 2009;27(19):3148-3153.
+- Hyman DM, et al. Vemurafenib in multiple nonmelanoma cancers with BRAF V600 mutations. *N Engl J Med*. 2015;373(8):726-736.
+
+## License
+
+GPL (>= 3)
+
+## Citation
+
+If you use this package, please cite:
+
+```
+Gerke T (2024). metabasket: Unified Framework for Basket Trial Design and Comparison.
+R package version 0.0.0.9000. https://tgerke.github.io/metabasket
+```
+
+And cite the original method papers as appropriate.
+
+## Contact
+
+- Travis Gerke (tgerke@mail.harvard.edu)
+- GitHub Issues: https://github.com/tgerke/metabasket/issues
