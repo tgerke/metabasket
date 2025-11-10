@@ -327,19 +327,28 @@ export_protocol_language(design, file = "protocol_section.md")
 ### Key Papers
 
 **Review:**
-- Zhou T, Ji Y. Bayesian Methods for Information Borrowing in Basket Trials: An Overview. *Cancers*. 2024;16(2):251. [PMC10813856](https://pmc.ncbi.nlm.nih.gov/articles/PMC10813856/)
+
+1. Zhou T, Ji Y. Bayesian Methods for Information Borrowing in Basket Trials: An Overview. *Cancers*. 2024;16(2):251. [PMC10813856](https://pmc.ncbi.nlm.nih.gov/articles/PMC10813856/)
 
 **Methods:**
+
 1. **BMA**: Psioda MA, et al. Bayesian adaptive basket trial design using model averaging. *Biostatistics*. 2021;22(1):19-34.
+
 2. **MEM**: Hobbs BP, Landin R. Bayesian basket trial design with exchangeability monitoring. *Stat Med*. 2018;37(25):3557-3572.
+
 3. **EXNEX**: Neuenschwander B, et al. Robust exchangeability designs for early phase clinical trials. *Pharm Stat*. 2016;15(2):123-134.
+
 4. **BHM**: Berry SM, et al. Bayesian hierarchical modeling of patient subpopulations. *Clin Trials*. 2013;10(5):720-734.
+
 5. **Cunanan**: Cunanan KM, et al. An efficient basket trial design. *Stat Med*. 2017;36(10):1568-1579.
+
 6. **Simon**: Simon R. Optimal two-stage designs for phase II clinical trials. *Control Clin Trials*. 1989;10(1):1-10.
 
 **Trial Examples:**
-- Chugh R, et al. Phase II multicenter trial of imatinib in 10 histologic subtypes of sarcoma. *J Clin Oncol*. 2009;27(19):3148-3153.
-- Hyman DM, et al. Vemurafenib in multiple nonmelanoma cancers with BRAF V600 mutations. *N Engl J Med*. 2015;373(8):726-736.
+
+1. Chugh R, et al. Phase II multicenter trial of imatinib in 10 histologic subtypes of sarcoma. *J Clin Oncol*. 2009;27(19):3148-3153.
+
+2. Hyman DM, et al. Vemurafenib in multiple nonmelanoma cancers with BRAF V600 mutations. *N Engl J Med*. 2015;373(8):726-736.
 
 ## License
 

@@ -9,7 +9,9 @@ export_protocol_language(design, file, ...)
 \arguments{
 \item{design}{A basket_design object}
 
-\item{file}{Character. Output file path}
+\item{file}{Character. Output file path. Extension determines format:
+.md = markdown, .html = HTML, .tex = LaTeX, .docx = Word,
+.txt = plain text, .Rmd = R Markdown with embedded R code}
 
 \item{...}{Additional arguments passed to generate_protocol_language()}
 }
@@ -18,4 +20,25 @@ Invisibly returns the protocol text
 }
 \description{
 Export protocol language to file
+}
+\examples{
+\dontrun{
+design <- basket_design(
+  n_baskets = 4,
+  sample_sizes = 25,
+  design_type = "cunanan"
+)
+
+# Export as markdown
+export_protocol_language(design, "protocol.md")
+
+# Export as HTML
+export_protocol_language(design, "protocol.html")
+
+# Export as Word document
+export_protocol_language(design, "protocol.docx")
+
+# Export as R Markdown (includes reproducible R code)
+export_protocol_language(design, "protocol.Rmd")
+}
 }
