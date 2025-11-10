@@ -1,0 +1,609 @@
+# metabasket
+
+## Overview
+
+**metabasket** provides a unified interface for designing, simulating,
+and analyzing basket trials using multiple established statistical
+methods. Basket trials evaluate a single therapy across multiple cancer
+types or subtypes simultaneously, and can benefit from information
+borrowing across baskets to improve efficiency and power.
+
+The package wraps existing implementations and provides:
+
+- **Consistent interface** for comparing different basket trial designs
+- **Simulation framework** for evaluating operating characteristics
+- **Protocol language generation** for study documentation
+- **Benchmark testing** against published results
+
+## Supported Methods
+
+| Method                             | Package     | Reference                                         | Key Features                                          |
+|:-----------------------------------|:------------|:--------------------------------------------------|:------------------------------------------------------|
+| Bayesian Model Averaging (BMA)     | `bmabasket` | Psioda et al. (2021)                              | Averages over models with different basket partitions |
+| Multi-source Exchangeability (MEM) | `basket`    | Hobbs & Landin (2018), Kaizer et al. (2018)       | Learns basket exchangeability from data               |
+| Bayesian Hierarchical Model (BHM)  | `bhmbasket` | Berry et al. (2013), Neuenschwander et al. (2016) | Shrinks basket estimates toward global mean           |
+| Efficient Basket Design            | Native      | Cunanan et al. (2017)                             | Two-stage design with interim heterogeneity test      |
+| Simon Two-Stage                    | `clinfun`   | Simon (1989)                                      | Independent parallel designs (reference comparator)   |
+
+## Installation
+
+You can install the development version from GitHub:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("tgerke/metabasket")
+```
+
+## Quick Start
+
+``` r
+library(metabasket)
+
+# Define a basket trial design
+design <- basket_design(
+  n_baskets = 4,
+  basket_names = c("NSCLC", "SCLC", "Melanoma", "RCC"),
+  sample_sizes = 25,
+  response_rates = c(0.35, 0.35, 0.35, 0.35),
+  null_response_rates = 0.20,
+  design_type = "cunanan"
+)
+
+# View the design
+print(design)
+#> Basket Trial Design
+#> ==================
+#> 
+#> Design Type: cunanan 
+#> Number of Baskets: 4 
+#> 
+#> Basket Details:
+#>    Basket  N Null_Rate Response_Rate
+#>     NSCLC 25       0.2          0.35
+#>      SCLC 25       0.2          0.35
+#>  Melanoma 25       0.2          0.35
+#>       RCC 25       0.2          0.35
+```
+
+``` r
+# Simulate trial data
+set.seed(123)
+sims <- simulate_responses(design, n_sims = 5)
+
+# Look at first simulation
+sims[[1]]
+#> Basket Trial Data
+#> =================
+#> 
+#> Number of Baskets: 4 
+#> 
+#>    Basket  N Responses Response_Rate
+#>     NSCLC 25         7          0.28
+#>      SCLC 25        11          0.44
+#>  Melanoma 25         8          0.32
+#>       RCC 25        12          0.48
+#> 
+#> Total Patients: 100 
+#> Total Responses: 38 
+#> Overall Response Rate: 0.38
+```
+
+``` r
+# Generate protocol language
+protocol_text <- generate_protocol_language(design)
+cat(protocol_text)
+#> # Basket Trial Design
+#> 
+#> ## Trial Overview
+#> 
+#> This is a basket trial designed to evaluate the efficacy of [DRUG NAME] across 4 cancer types or subtypes. The trial will enroll patients into 4 distinct baskets based on their cancer diagnosis:
+#> 
+#> 1. NSCLC (N = 25 patients)
+#> 2. SCLC (N = 25 patients)
+#> 3. Melanoma (N = 25 patients)
+#> 4. RCC (N = 25 patients)
+#> 
+#> The total sample size for this trial is 100 patients (25 patients per basket). This sample size was selected to provide adequate power to detect clinically meaningful treatment effects while accounting for information borrowing across baskets.
+#> 
+#> ## Statistical Methodology
+#> 
+#> The trial will use a Efficient Basket Trial Design for the analysis of treatment efficacy. This design uses a two-stage approach with an interim analysis to assess homogeneity of treatment effects across baskets. If substantial heterogeneity is not detected, data are pooled across baskets for increased efficiency. Otherwise, each basket is analyzed independently to avoid inappropriate borrowing of information.
+#> 
+#> #### Technical Details
+#> 
+#> The interim analysis uses Fisher's exact test to assess homogeneity. The critical value for the test statistic is chosen to optimize operating characteristics through simulation. The final analysis threshold is adjusted based on whether pooling or stratified analysis is used.
+#> 
+#> ### Hypothesis Testing
+#> 
+#> For each basket j (j = 1, ..., 4), we will test the following hypotheses:
+#> 
+#> H0: pi_j <= 20.0% (the treatment is not efficacious)
+#> H1: pi_j > 20.0% (the treatment is efficacious)
+#> 
+#> where pi_j represents the true response rate for basket j.
+#> 
+#> ### Decision Criteria
+#> 
+#> At the completion of enrollment, the posterior probability that H1 is true will be computed for each basket using the observed data and the specified statistical model. A basket will be declared promising (i.e., H0 will be rejected) if the posterior probability exceeds a prespecified threshold gamma.
+#> 
+#> The threshold gamma will be calibrated through simulation studies to achieve desired operating characteristics (e.g., family-wise error rate <= 5%, adequate power). The final threshold will be specified in the Statistical Analysis Plan prior to unblinding.
+#> 
+#> 
+#> 
+#> ## Operating Characteristics
+#> 
+#> The design has been calibrated through simulation studies to maintain appropriate Type I error control while maximizing power to detect treatment effects. Detailed operating characteristics are available in the Statistical Analysis Plan.
+#> 
+#> 
+#> ## References
+#> 
+#> 1. Zhou T, Ji Y. Bayesian Methods for Information Borrowing in Basket Trials: An Overview. Cancers. 2024;16(2):251.
+#> 2. Hobbs BP, Pestana RC, Zabor EC, Kaizer AM, Hong DS. Basket trials: Review of current practice and innovations for future trials. J Clin Oncol. 2022;40(28):3520-3528.
+#> 3. Cunanan KM, Iasonos A, Shen R, Begg CB, Gonen M. An efficient basket trial design. Stat Med. 2017;36(10):1568-1579.
+```
+
+## Cunanan Efficient Design
+
+The Cunanan design uses a two-stage adaptive approach with an interim
+test of homogeneity:
+
+``` r
+# Design for 5 baskets
+design_cunanan <- basket_design(
+  n_baskets = 5,
+  sample_sizes = c(7, 7, 7, 7, 7),  # Stage 1
+  null_response_rates = 0.15,
+  response_rates = 0.45,
+  design_type = "cunanan",
+  design_params = list(
+    r_s = 1,      # Min responses to continue basket (heterogeneous path)
+    r_c = 5,      # Min total responses to continue (homogeneous path)
+    n2 = 15,      # Stage 2 sample size per basket
+    gamma = 0.52, # Heterogeneity threshold
+    alpha_s = 0.07, # Separate analysis alpha
+    alpha_c = 0.05  # Combined analysis alpha
+  )
+)
+
+# Stage 1 data
+stage1 <- basket_data(
+  basket_names = paste0("Basket", 1:5),
+  n_patients = c(7, 7, 7, 7, 7),
+  n_responses = c(4, 4, 1, 0, 1)
+)
+
+# Interim analysis
+interim <- analyze_basket(stage1, design_cunanan)
+print(interim)
+#> Cunanan Efficient Basket Trial Design
+#> =====================================
+#> 
+#> INTERIM ANALYSIS (Stage 1)
+#> --------------------------
+#> Test of Homogeneity p-value: 0.044 
+#> Design path selected: heterogeneous 
+#> Baskets continuing to Stage 2: 1, 2, 3, 5 
+#> 
+#> Stage 2 will analyze baskets separately with alpha = 0.0175
+```
+
+## Simon Two-Stage Design (Reference Comparator)
+
+The Simon design analyzes each basket independently without information
+borrowing:
+
+``` r
+# Design with parallel Simon designs
+design_simon <- simon_design(
+  n_baskets = 4,
+  basket_names = c("NSCLC", "SCLC", "Melanoma", "RCC"),
+  sample_sizes = 25,
+  null_response_rates = 0.20,
+  alternative_response_rates = 0.40,
+  alpha = 0.05 / 4,  # Bonferroni correction for FWER control
+  beta = 0.20
+)
+
+print(design_simon)
+#> Simon Two-Stage Design (Parallel Independent Designs)
+#> =====================================================
+#> 
+#> Design Type: OPTIMAL 
+#>   - optimal: minimizes expected sample size under H0
+#>   - minimax: minimizes maximum sample size
+#> 
+#> Number of cohorts: 4 
+#> Per-cohort error rates:
+#>   - Alpha (type I): 0.0125 
+#>   - Beta (type II): 0.2 
+#>   - Power: 0.8 
+#> 
+#> Cohort specifications:
+#>   NSCLC: n=25, p0=0.200
+#>   SCLC: n=25, p0=0.200
+#>   Melanoma: n=25, p0=0.200
+#>   RCC: n=25, p0=0.200
+#> 
+#> Note: No information borrowing between cohorts.
+#> For FWER control at level epsilon, use alpha = epsilon / n_baskets (Bonferroni).
+
+# Stage 1 data
+stage1 <- basket_data(
+  basket_names = paste0("Basket", 1:4),
+  n_patients = c(12, 12, 12, 12),
+  n_responses = c(6, 2, 5, 1)
+)
+
+# Interim analysis (checks futility per basket)
+interim <- analyze_basket(stage1, design_simon)
+print(interim)
+#> Simon Two-Stage Design (Parallel Independent Analyses)
+#> =======================================================
+#> 
+#> Design Type: optimal 
+#> Alpha: 0.0125 
+#> Beta: 0.2 
+#> 
+#> Design Parameters:
+#>   Stage 1: n1 = 20, r1 = 4 (stop if <= 4 responses)
+#>   Stage 2: n = 49, r = 16 (reject if > 16 responses total)
+#>   Expected N under H0: 30.7
+#>   Probability of early termination (PET): 0.630
+#> 
+#> INTERIM ANALYSIS (Stage 1)
+#> --------------------------
+#> Baskets continuing to Stage 2: 4 of 4 
+#> Baskets stopped for futility: 0 of 4 
+#> 
+#>   Basket 1: Continue (6/12 responses)
+#>   Basket 2: Continue (2/12 responses)
+#>   Basket 3: Continue (5/12 responses)
+#>   Basket 4: Continue (1/12 responses)
+```
+
+## Bayesian Model Averaging (BMA)
+
+The BMA design uses Bayesian model averaging over all possible
+partitions of baskets, providing flexible, data-driven information
+borrowing:
+
+``` r
+# BMA design for 4 baskets
+library(bmabasket)
+design_bma <- basket_design(
+  n_baskets = 4,
+  basket_names = c("NSCLC", "SCLC", "Melanoma", "RCC"),
+  sample_sizes = 25,
+  null_response_rates = 0.20,
+  design_type = "bma",
+  design_params = list(
+    mu0 = 0.5,  # Prior mean
+    phi0 = 1,   # Prior dispersion (1 = uninformative)
+    pmp0 = 1,   # Model prior parameter (1 = default, 0 = uniform)
+    post_prob_threshold = 0.95  # Posterior prob threshold for efficacy
+  )
+)
+
+print(design_bma)
+#> Basket Trial Design
+#> ==================
+#> 
+#> Design Type: bma 
+#> Number of Baskets: 4 
+#> 
+#> Basket Details:
+#>    Basket  N Null_Rate
+#>     NSCLC 25       0.2
+#>      SCLC 25       0.2
+#>  Melanoma 25       0.2
+#>       RCC 25       0.2
+#> 
+#> Design Parameters:
+#> $mu0
+#> [1] 0.5
+#> 
+#> $phi0
+#> [1] 1
+#> 
+#> $pmp0
+#> [1] 1
+#> 
+#> $post_prob_threshold
+#> [1] 0.95
+
+# Data
+bma_data <- basket_data(
+  basket_names = c("NSCLC", "SCLC", "Melanoma", "RCC"),
+  n_patients = c(25, 25, 25, 25),
+  n_responses = c(8, 12, 6, 10)
+)
+
+# BMA analysis
+result_bma <- analyze_basket(bma_data, design_bma)
+print(result_bma)
+#> Bayesian Model Averaging (BMA) Analysis Results
+#> ================================================
+#> 
+#> Prior parameters:
+#>   mu0 (prior mean): 0.5 
+#>   phi0 (prior dispersion): 1 
+#>   pmp0 (model prob parameter): 1 
+#>   P (max distinct params): 4 
+#> 
+#> Decision threshold: 0.95 
+#> 
+#>    Basket Post Mean Post Prob       Decision
+#>     NSCLC     0.340     0.962      REJECT H0
+#>      SCLC     0.433     0.999      REJECT H0
+#>  Melanoma     0.293     0.861 FAIL TO REJECT
+#>       RCC     0.387     0.994      REJECT H0
+#> 
+#> Baskets rejecting null: 3 of 4
+
+# Extract rejections
+rejections <- extract_rejections(result_bma)
+print(rejections)
+#> [1]  TRUE  TRUE FALSE  TRUE
+```
+
+## Multi-source Exchangeability Model (MEM)
+
+The MEM design learns the exchangeability structure from the data,
+borrowing information between similar baskets while protecting against
+borrowing from dissimilar baskets:
+
+``` r
+# MEM design for 4 baskets
+library(basket)
+design_mem <- basket_design(
+  n_baskets = 4,
+  basket_names = c("NSCLC", "SCLC", "Melanoma", "RCC"),
+  sample_sizes = 25,
+  null_response_rates = 0.20,
+  design_type = "mem",
+  design_params = list(
+    shape1 = 0.5,  # Beta prior shape parameter 1
+    shape2 = 0.5,  # Beta prior shape parameter 2
+    hpd_alpha = 0.05  # HPD credible interval level
+  )
+)
+
+print(design_mem)
+#> Basket Trial Design
+#> ==================
+#> 
+#> Design Type: mem 
+#> Number of Baskets: 4 
+#> 
+#> Basket Details:
+#>    Basket  N Null_Rate
+#>     NSCLC 25       0.2
+#>      SCLC 25       0.2
+#>  Melanoma 25       0.2
+#>       RCC 25       0.2
+#> 
+#> Design Parameters:
+#> $shape1
+#> [1] 0.5
+#> 
+#> $shape2
+#> [1] 0.5
+#> 
+#> $hpd_alpha
+#> [1] 0.05
+
+# Data
+mem_data <- basket_data(
+  basket_names = c("NSCLC", "SCLC", "Melanoma", "RCC"),
+  n_patients = c(25, 25, 25, 25),
+  n_responses = c(8, 12, 6, 10)
+)
+
+# MEM analysis
+result_mem <- analyze_basket(mem_data, design_mem)
+print(result_mem)
+#> Multi-source Exchangeability Model (MEM) Analysis Results
+#> =========================================================
+#> 
+#> Prior parameters:
+#>   shape1 (beta prior): 0.5 
+#>   shape2 (beta prior): 0.5 
+#>   hpd_alpha: 0.05 
+#> 
+#> Decision threshold (P > p0): 0.95 
+#> 
+#>    Basket Post Mean Post Median Post Prob HPD Lower HPD Upper  Decision
+#>     NSCLC     0.361       0.360     0.999     0.256     0.464 REJECT H0
+#>      SCLC     0.372       0.369     1.000     0.267     0.486 REJECT H0
+#>  Melanoma     0.351       0.351     0.994     0.241     0.461 REJECT H0
+#>       RCC     0.363       0.361     0.999     0.262     0.466 REJECT H0
+#> 
+#> Baskets rejecting null: 4 of 4 
+#> 
+#> Posterior Exchangeability Probabilities (PEP):
+#> (Probability that baskets share the same response rate)
+#>          NSCLC  SCLC Melanoma   RCC
+#> NSCLC        1 0.896    0.904 0.955
+#> SCLC        NA 1.000    0.767 0.911
+#> Melanoma    NA    NA    1.000 0.888
+#> RCC         NA    NA       NA 1.000
+
+# Extract rejections
+rejections <- extract_rejections(result_mem)
+print(rejections)
+#>    NSCLC     SCLC Melanoma      RCC 
+#>     TRUE     TRUE     TRUE     TRUE
+```
+
+### Bayesian Hierarchical Model (BHM)
+
+BHM methods from Berry et al. (2013) and Neuenschwander et al. (2016)
+use MCMC to estimate posterior distributions with hierarchical
+borrowing:
+
+``` r
+# Note: Requires JAGS installation (https://mcmc-jags.sourceforge.io/)
+design_bhm <- basket_design(
+  design_type = "bhm",
+  n_baskets = 3,
+  sample_sizes = 25,
+  null_response_rates = 0.15,
+  design_params = list(
+    method = "berry",              # Options: "berry", "exnex", "exnex_adj", "pooled", "stratified"
+    n_mcmc_iterations = 10000,     # MCMC iterations
+    evidence_level = 0.1           # Alpha level for decisions
+  )
+)
+
+bhm_data <- basket_data(
+  n_patients = c(25, 25, 25),
+  n_responses = c(10, 12, 8),
+  basket_names = c("Basket A", "Basket B", "Basket C")
+)
+
+result_bhm <- analyze_basket(bhm_data, design_bhm)
+print(result_bhm)
+
+# Extract rejections
+rejections <- extract_rejections(result_bhm)
+print(rejections)
+```
+
+**System Requirements:** BHM analysis requires JAGS (Just Another Gibbs
+Sampler) to be installed on your system. Download from
+<https://mcmc-jags.sourceforge.io/>. After installing JAGS, install the
+R package: `install.packages("rjags")`.
+
+## Analyzing Real Data
+
+``` r
+# Load included example data
+data("imatinib_trial", package = "metabasket")
+print(imatinib_trial)
+#> Basket Trial Data
+#> =================
+#> 
+#> Number of Baskets: 
+#> 
+#>            Basket  N Responses Response_Rate
+#>      Angiosarcoma 15         2         0.133
+#>             Ewing 13         0         0.000
+#>      Fibrosarcoma 12         1         0.083
+#>    Leiomyosarcoma 28         6         0.214
+#>       Liposarcoma 29         7         0.241
+#>               MFH 29         3         0.103
+#>      Osteosarcoma 26         5         0.192
+#>             MPNST  5         1         0.200
+#>  Rhabdomyosarcoma  2         0         0.000
+#>          Synovial 20         3         0.150
+#> 
+#> Total Patients: 179 
+#> Total Responses: 28 
+#> Overall Response Rate: 0.156
+
+# Summary statistics
+summary_df <- data.frame(
+  Basket = imatinib_trial$basket_names,
+  N = imatinib_trial$n_patients,
+  Responses = imatinib_trial$n_responses,
+  `Response Rate` = sprintf("%.1f%%", 
+                            100 * imatinib_trial$n_responses / imatinib_trial$n_patients),
+  check.names = FALSE
+)
+
+knitr::kable(summary_df, align = c("l", "r", "r", "r"))
+```
+
+| Basket           |   N | Responses | Response Rate |
+|:-----------------|----:|----------:|--------------:|
+| Angiosarcoma     |  15 |         2 |         13.3% |
+| Ewing            |  13 |         0 |          0.0% |
+| Fibrosarcoma     |  12 |         1 |          8.3% |
+| Leiomyosarcoma   |  28 |         6 |         21.4% |
+| Liposarcoma      |  29 |         7 |         24.1% |
+| MFH              |  29 |         3 |         10.3% |
+| Osteosarcoma     |  26 |         5 |         19.2% |
+| MPNST            |   5 |         1 |         20.0% |
+| Rhabdomyosarcoma |   2 |         0 |          0.0% |
+| Synovial         |  20 |         3 |         15.0% |
+
+## Key Features
+
+### Consistent Interface
+
+All methods use the same workflow:
+
+1.  Define design with
+    [`basket_design()`](https://tgerke.github.io/metabasket/reference/basket_design.md)
+    or
+    [`simon_design()`](https://tgerke.github.io/metabasket/reference/simon_design.md)
+2.  Simulate data with
+    [`simulate_responses()`](https://tgerke.github.io/metabasket/reference/simulate_responses.md)
+    or provide real data with
+    [`basket_data()`](https://tgerke.github.io/metabasket/reference/basket_data.md)
+3.  Analyze with
+    [`analyze_basket()`](https://tgerke.github.io/metabasket/reference/analyze_basket.md)
+    (method-specific)
+4.  Compute operating characteristics with
+    [`simulate_basket_trial()`](https://tgerke.github.io/metabasket/reference/simulate_basket_trial.md)
+
+### Protocol Language Generation
+
+Automatically generate standardized protocol text:
+
+``` r
+protocol_text <- generate_protocol_language(
+  design,
+  include_statistical_details = TRUE,
+  include_references = TRUE
+)
+
+# Export to file
+export_protocol_language(design, file = "protocol_section.md")
+```
+
+## References
+
+### Key Papers
+
+**Review:** - Zhou T, Ji Y. Bayesian Methods for Information Borrowing
+in Basket Trials: An Overview. *Cancers*. 2024;16(2):251.
+[PMC10813856](https://pmc.ncbi.nlm.nih.gov/articles/PMC10813856/)
+
+**Methods:** 1. **BMA**: Psioda MA, et al. Bayesian adaptive basket
+trial design using model averaging. *Biostatistics*. 2021;22(1):19-34.
+2. **MEM**: Hobbs BP, Landin R. Bayesian basket trial design with
+exchangeability monitoring. *Stat Med*. 2018;37(25):3557-3572. 3.
+**EXNEX**: Neuenschwander B, et al. Robust exchangeability designs for
+early phase clinical trials. *Pharm Stat*. 2016;15(2):123-134. 4.
+**BHM**: Berry SM, et al. Bayesian hierarchical modeling of patient
+subpopulations. *Clin Trials*. 2013;10(5):720-734. 5. **Cunanan**:
+Cunanan KM, et al. An efficient basket trial design. *Stat Med*.
+2017;36(10):1568-1579. 6. **Simon**: Simon R. Optimal two-stage designs
+for phase II clinical trials. *Control Clin Trials*. 1989;10(1):1-10.
+
+**Trial Examples:** - Chugh R, et al. Phase II multicenter trial of
+imatinib in 10 histologic subtypes of sarcoma. *J Clin Oncol*.
+2009;27(19):3148-3153. - Hyman DM, et al. Vemurafenib in multiple
+nonmelanoma cancers with BRAF V600 mutations. *N Engl J Med*.
+2015;373(8):726-736.
+
+## License
+
+GPL (\>= 3)
+
+## Citation
+
+If you use this package, please cite:
+
+``` R
+Gerke T (2024). metabasket: Unified Framework for Basket Trial Design and Comparison.
+R package version 0.0.0.9000. https://tgerke.github.io/metabasket
+```
+
+And cite the original method papers as appropriate.
+
+## Contact
+
+- Travis Gerke (<tgerke@mail.harvard.edu>)
+- GitHub Issues: <https://github.com/tgerke/metabasket/issues>
