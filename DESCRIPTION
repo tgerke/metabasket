@@ -16,7 +16,6 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Imports:
     stats,
-    future,
     furrr,
     progressr
 Suggests:
@@ -25,6 +24,8 @@ Suggests:
     bhmbasket,
     rjags,
     doFuture,
+    foreach,
+    future,
     testthat (>= 3.0.0),
     knitr,
     rmarkdown,

@@ -229,6 +229,7 @@ simulate_basket_trial <- function(design,
 #' @param ... Additional arguments passed to analyze_basket
 #'
 #' @return A simulation_results object
+#' @importFrom stats rbinom
 #' @keywords internal
 simulate_twostage_trial <- function(design, n_sims, seed, alpha, .parallelize = FALSE, ...) {
   

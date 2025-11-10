@@ -13,6 +13,8 @@
 #' @param confidence_level Numeric. Confidence level for intervals (default 0.95)
 #'
 #' @return A formatted report string
+#' @importFrom stats binom.test rbinom
+#' @importFrom utils capture.output
 #' @export
 #'
 #' @examples
@@ -447,7 +449,7 @@ generate_preregistration <- function(design,
   
   # Hypotheses
   sections$hypotheses <- sprintf(
-    "\n\n## Hypotheses\n\nFor each basket j (j = 1, ..., %d):\n\n- **H0:** Response rate ≤ %.2f (null hypothesis)\n- **H1:** Response rate > %.2f (alternative hypothesis)",
+    "\n\n## Hypotheses\n\nFor each basket j (j = 1, ..., %d):\n\n- **H0:** Response rate \u2264 %.2f (null hypothesis)\n- **H1:** Response rate > %.2f (alternative hypothesis)",
     design$n_baskets,
     mean(design$null_response_rates),
     mean(design$null_response_rates)

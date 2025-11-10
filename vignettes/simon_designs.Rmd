@@ -1,0 +1,392 @@
+---
+title: "Simon Two-Stage Designs in metabasket"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Simon Two-Stage Designs in metabasket}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+```{r setup}
+library(metabasket)
+library(ggplot2)
+library(dplyr)
+```
+
+## Introduction
+
+Simon two-stage designs (Simon 1989) are the gold standard for single-arm phase II trials. The `clinfun::ph2simon` function provides highly accurate and computationally efficient calculations of optimal and minimax designs. However, when conducting simulation studies or designing basket trials with independent Simon designs per basket, researchers face two common challenges:
+
+1. **Parallelization**: Running thousands of simulations can be time-consuming
+2. **Documentation**: Translating design parameters into clear, shareable protocol language
+
+The `metabasket` package addresses both limitations while leveraging `clinfun::ph2simon` for the core design calculations.
+
+## Advantages of metabasket's Simon Implementation
+
+### 1. Parallel Simulation Infrastructure
+
+`metabasket` integrates Simon designs with its parallel simulation framework, enabling:
+
+- Automatic parallelization via `future` backend
+- Progress reporting with `progressr`
+- Consistent interface with other basket trial designs
+- Operating characteristics calculated across parallel workers
+
+### 2. Automated Protocol Language Generation
+
+Generate publication-ready protocol text and export to multiple formats:
+
+- Markdown (`.md`)
+- HTML (`.html`)
+- LaTeX (`.tex`)
+- Word (`.docx`)
+- R Markdown (`.Rmd`)
+
+This bridges the gap between statistical design and regulatory/clinical communication.
+
+## Basic Simon Design Example
+
+### Single Basket (Traditional Use Case)
+
+Create a Simon optimal design for a single basket:
+
+```{r basic_design}
+# Design a Simon optimal two-stage trial
+# H0: p <= 0.20 vs H1: p >= 0.40
+# Alpha = 0.10, Power = 0.80
+design <- simon_design(
+  n_baskets = 1,
+  basket_names = "NSCLC",
+  sample_sizes = 43,  # Maximum sample size
+  null_response_rates = 0.20,
+  alternative_response_rates = 0.40,
+  alpha = 0.10,
+  beta = 0.20,
+  design_type = "optimal"
+)
+
+print(design)
+```
+
+The design parameters come directly from `clinfun::ph2simon`, ensuring accuracy.
+
+### Generate Protocol Language
+
+Convert the design to human-readable protocol text:
+
+```{r protocol_text}
+protocol_text <- protocol_language(design)
+cat(protocol_text)
+```
+
+### Export to Multiple Formats
+
+```{r export_formats, eval=FALSE}
+# Export to Word for protocol documents
+export_protocol_language(design, "simon_protocol.docx")
+
+# Export to LaTeX for publications
+export_protocol_language(design, "simon_protocol.tex")
+
+# Export to HTML for web sharing
+export_protocol_language(design, "simon_protocol.html")
+
+# Export to R Markdown for reproducible reports
+export_protocol_language(design, "simon_protocol.Rmd")
+```
+
+## Parallel Basket Trial with Independent Simon Designs
+
+### Multiple Baskets Example
+
+For basket trials where you want independent testing per basket (no information borrowing):
+
+```{r basket_design}
+# Basket trial with 4 disease cohorts
+# Each uses independent Simon design
+design_basket <- simon_design(
+  n_baskets = 4,
+  basket_names = c("NSCLC", "SCLC", "Melanoma", "RCC"),
+  sample_sizes = 25,
+  null_response_rates = 0.20,
+  alternative_response_rates = 0.40,
+  alpha = 0.05 / 4,  # Bonferroni correction for FWER control
+  beta = 0.20,
+  design_type = "optimal"
+)
+
+print(design_basket)
+```
+
+### Protocol Language for Basket Trial
+
+```{r basket_protocol}
+protocol_text_basket <- protocol_language(design_basket)
+cat(protocol_text_basket)
+```
+
+## Simulation Studies with Parallelization
+
+### Operating Characteristics via Parallel Simulation
+
+This is where `metabasket` truly shines over standalone `clinfun::ph2simon`:
+
+```{r parallel_sim, eval=FALSE}
+# Set up parallel backend
+library(future)
+plan(multisession, workers = 4)
+
+# Enable progress reporting
+library(progressr)
+handlers(global = TRUE)
+handlers("progress")
+
+# Run 10,000 simulations in parallel
+# This would take much longer sequentially!
+results <- simulate_basket_trial(
+  design_basket,
+  n_sims = 10000,
+  .parallelize = TRUE,  # Key: enables parallel execution
+  alpha = 0.05 / 4
+)
+
+# View operating characteristics
+summary(results)
+
+# Reset to sequential
+plan(sequential)
+handlers(global = FALSE)
+```
+
+### Power Curve Analysis
+
+Generate power curves across different response rates:
+
+```{r power_curve, eval=FALSE}
+# Vector of true response rates to evaluate
+response_rates_seq <- seq(0.10, 0.60, by = 0.05)
+
+# Set up parallel backend
+plan(multisession, workers = 4)
+
+# Calculate power for each scenario
+power_results <- lapply(response_rates_seq, function(p_true) {
+  # Create design with this true response rate
+  design_scenario <- simon_design(
+    n_baskets = 1,
+    basket_names = "Basket",
+    sample_sizes = 25,
+    null_response_rates = 0.20,
+    alternative_response_rates = 0.40,
+    alpha = 0.10,
+    beta = 0.20,
+    design_type = "optimal"
+  )
+  design_scenario$response_rates <- p_true
+  
+  # Simulate
+  sim_result <- simulate_basket_trial(
+    design_scenario,
+    n_sims = 5000,
+    .parallelize = TRUE,
+    alpha = 0.10
+  )
+  
+  # Extract power (rejection probability)
+  data.frame(
+    true_rate = p_true,
+    power = sim_result$power_per_basket[1],
+    type_i_error = if (p_true <= 0.20) sim_result$power_per_basket[1] else NA
+  )
+})
+
+# Combine results
+power_df <- bind_rows(power_results)
+
+# Plot power curve
+ggplot(power_df, aes(x = true_rate, y = power)) +
+  geom_line(size = 1, color = "steelblue") +
+  geom_point(size = 2, color = "steelblue") +
+  geom_hline(yintercept = 0.10, linetype = "dashed", color = "red", 
+             alpha = 0.5, size = 0.5) +
+  geom_vline(xintercept = 0.20, linetype = "dashed", color = "red", 
+             alpha = 0.5, size = 0.5) +
+  geom_vline(xintercept = 0.40, linetype = "dashed", color = "green", 
+             alpha = 0.5, size = 0.5) +
+  annotate("text", x = 0.20, y = 0.95, label = "H0: p0 = 0.20", 
+           hjust = 0, color = "red") +
+  annotate("text", x = 0.40, y = 0.95, label = "H1: p1 = 0.40", 
+           hjust = 0, color = "green") +
+  scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
+  scale_x_continuous(labels = scales::percent) +
+  labs(
+    title = "Power Curve for Simon Optimal Design",
+    subtitle = "Based on 5,000 simulations per scenario (parallelized)",
+    x = "True Response Rate",
+    y = "Power (Probability of Rejection)",
+    caption = "Dashed lines: Type I error (α = 0.10) at null, target power at alternative"
+  ) +
+  theme_minimal(base_size = 12)
+
+# Clean up
+plan(sequential)
+```
+
+## Advanced: Interim Analysis with Simon Design
+
+### Stage 1 Analysis
+
+```{r stage1, eval=FALSE}
+# Create Simon design
+design <- simon_design(
+  n_baskets = 1,
+  basket_names = "NSCLC",
+  sample_sizes = 43,
+  null_response_rates = 0.20,
+  alternative_response_rates = 0.40,
+  alpha = 0.10,
+  beta = 0.20,
+  design_type = "optimal"
+)
+
+# Stage 1 data (e.g., n1 = 18 patients enrolled)
+stage1_data <- basket_data(
+  basket_names = "NSCLC",
+  n_patients = 18,
+  n_responses = 5
+)
+
+# Interim analysis
+interim_result <- analyze_basket(stage1_data, design, alpha = 0.10)
+print(interim_result)
+
+# Check futility decision
+if (interim_result$futility_stopped[1]) {
+  cat("\nTrial stopped for futility at interim.\n")
+} else {
+  cat("\nTrial continues to Stage 2.\n")
+  cat("Need to enroll", design$sample_sizes[1] - 18, "additional patients.\n")
+}
+```
+
+### Stage 2 Analysis
+
+```{r stage2, eval=FALSE}
+# After Stage 2 enrollment complete
+full_data <- basket_data(
+  basket_names = "NSCLC",
+  n_patients = 43,
+  n_responses = 15
+)
+
+# Final analysis
+final_result <- analyze_basket(
+  full_data, 
+  design, 
+  alpha = 0.10, 
+  interim_data = interim_result
+)
+
+print(final_result)
+```
+
+## Comparison with Other Basket Methods
+
+A key use case for Simon designs in `metabasket` is as a **reference comparator** for information-borrowing methods:
+
+```{r comparison, eval=FALSE}
+# Create designs for comparison
+design_simon <- simon_design(
+  n_baskets = 4,
+  basket_names = c("NSCLC", "SCLC", "Melanoma", "RCC"),
+  sample_sizes = 25,
+  null_response_rates = 0.20,
+  alternative_response_rates = 0.40,
+  alpha = 0.05 / 4,
+  beta = 0.20,
+  design_type = "optimal"
+)
+
+design_bma <- basket_design(
+  n_baskets = 4,
+  basket_names = c("NSCLC", "SCLC", "Melanoma", "RCC"),
+  sample_sizes = 25,
+  response_rates = c(0.40, 0.40, 0.40, 0.40),
+  null_response_rates = 0.20,
+  design_type = "bma"
+)
+
+# Simulate both (in parallel)
+plan(multisession, workers = 4)
+
+results_simon <- simulate_basket_trial(
+  design_simon, 
+  n_sims = 1000, 
+  .parallelize = TRUE
+)
+
+results_bma <- simulate_basket_trial(
+  design_bma, 
+  n_sims = 1000, 
+  .parallelize = TRUE
+)
+
+# Compare operating characteristics
+cat("Simon (no borrowing) - Family-wise Power:", 
+    mean(results_simon$any_rejection), "\n")
+cat("BMA (with borrowing) - Family-wise Power:", 
+    mean(results_bma$any_rejection), "\n")
+
+plan(sequential)
+```
+
+This shows the **gain from information borrowing** in basket trials.
+
+## Summary
+
+The `metabasket` package enhances `clinfun::ph2simon` in two critical ways for modern basket trial research:
+
+### ✅ Parallel Simulation Infrastructure
+- Leverage multiple CPU cores via `future` backend
+- Progress tracking with `progressr` 
+- Consistent API with other basket designs
+- Dramatically faster simulation studies
+
+### ✅ Protocol Language Generation
+- Automated translation to human-readable text
+- Multi-format export (Word, LaTeX, HTML, Markdown, R Markdown)
+- Bridges statistical design and clinical communication
+- Version-controlled protocol documentation
+
+### When to Use Simon Designs in metabasket
+
+1. **Reference comparator**: Establish performance without information borrowing
+2. **Independent baskets**: When borrowing is scientifically inappropriate
+3. **Regulatory conservatism**: When agencies prefer independent testing
+4. **Simulation benchmarks**: Compare information-borrowing methods against gold standard
+
+### Computational Advantage
+
+For large simulation studies (e.g., 10,000 replicates × 10 scenarios), parallelization can reduce runtime from **hours to minutes** on multi-core machines.
+
+## References
+
+Simon R (1989). Optimal two-stage designs for phase II clinical trials. *Controlled Clinical Trials*, 10(1):1-10.
+
+Jung SH, Lee T, Kim K, George SL (2004). Admissible two-stage designs for phase II cancer clinical trials. *Statistics in Medicine*, 23(4):561-569.
+
+## Session Info
+
+```{r session_info}
+sessionInfo()
+```
