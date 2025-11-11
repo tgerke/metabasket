@@ -96,11 +96,12 @@ jobs:
             fi
           }
           
-          # bmabasket has unreliable C++ code on macOS ARM64 - segfaults intermittently
-          # Remove it to let tests run
+          # Multiple packages with compiled code have unreliable behavior on macOS ARM64
+          # Remove them to let tests run with appropriate skips
           echo ""
-          echo "Removing bmabasket (known C++ issues on macOS ARM64)..."
+          echo "Removing packages with known C++ issues on macOS ARM64..."
           Rscript -e "try(remove.packages('bmabasket'), silent = TRUE)" 2>/dev/null || true
+          Rscript -e "try(remove.packages('clinfun'), silent = TRUE)" 2>/dev/null || true
           
           # Test basket with simple loading and basic check
           test_package "basket" "

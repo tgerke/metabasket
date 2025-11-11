@@ -68,10 +68,10 @@
 * Extensive tests for Simon design (parameter calculation, FWER control, power)
 * **NEW**: 12 parallel execution tests verifying identical results between sequential and parallel modes
 * doFuture backend registration in test setup to suppress foreach messages
-* Tests gracefully skip when optional method packages (bmabasket, basket, bhmbasket) are not available  
+* Tests gracefully skip when optional method packages (bmabasket, basket, bhmbasket, clinfun) are not available  
 * Test setup pre-loads optional packages to detect platform-specific issues before tests run
-* CI workflow functionally tests optional packages on macOS ARM64 with real data
-* Packages with broken compiled code from external packages (e.g., bmabasket C++ segfault on ARM64) are automatically removed before testing
+* CI workflow automatically removes packages with known compiled code issues on macOS ARM64 (bmabasket, clinfun)
+* Tests skip gracefully when packages unavailable while maintaining full coverage on other platforms (Windows, Linux)
 * Custom skip function checks pre-loaded package availability to prevent runtime crashes
 
 ### Documentation
