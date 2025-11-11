@@ -646,13 +646,13 @@ generate_protocol_language.simon_design <- function(design,
   # Hypothesis testing
   if (design$n_baskets == 1) {
     hypothesis_text <- sprintf(
-      "### Hypothesis Testing\n\nWe test:\n\nH0: π ≤ %.2f (the treatment is not efficacious)\nH1: π > %.2f (the treatment is efficacious)\n\nwhere π represents the true response rate.\n\n",
+      "### Hypothesis Testing\n\nWe test:\n\nH0: p <= %.2f (the treatment is not efficacious)\nH1: p > %.2f (the treatment is efficacious)\n\nwhere p represents the true response rate.\n\n",
       design$null_response_rates[1],
       design$null_response_rates[1]
     )
   } else {
     hypothesis_text <- sprintf(
-      "### Hypothesis Testing\n\nFor each cohort j (j = 1, ..., %d), we test:\n\nH0: π_j ≤ p0 (the treatment is not efficacious)\nH1: π_j > p0 (the treatment is efficacious)\n\nwhere π_j represents the true response rate for cohort j and p0 is the null response rate.\n\n",
+      "### Hypothesis Testing\n\nFor each cohort j (j = 1, ..., %d), we test:\n\nH0: p_j <= p0 (the treatment is not efficacious)\nH1: p_j > p0 (the treatment is efficacious)\n\nwhere p_j represents the true response rate for cohort j and p0 is the null response rate.\n\n",
       design$n_baskets
     )
   }
@@ -665,14 +665,14 @@ generate_protocol_language.simon_design <- function(design,
     if (design$alpha <= 0.025) {
       # User likely already applied Bonferroni
       multiple_testing_text <- sprintf(
-        "### Multiple Testing Adjustment\n\nTo control the family-wise error rate (FWER) across %d cohorts, a Bonferroni correction is applied. Each individual cohort is tested at significance level α = %.4f. This ensures that the probability of falsely rejecting H0 for at least one cohort is controlled when all null hypotheses are true.\n\n",
+        "### Multiple Testing Adjustment\n\nTo control the family-wise error rate (FWER) across %d cohorts, a Bonferroni correction is applied. Each individual cohort is tested at significance level alpha = %.4f. This ensures that the probability of falsely rejecting H0 for at least one cohort is controlled when all null hypotheses are true.\n\n",
         design$n_baskets,
         design$alpha
       )
     } else {
       # Describe that testing is at the stated alpha without adjustment
       multiple_testing_text <- sprintf(
-        "### Type I Error Control\n\nEach cohort is tested at significance level α = %.3f. With %d independent cohorts, the family-wise error rate (probability of at least one false positive when all nulls are true) is approximately %.3f under independence.\n\nNote: If strict family-wise error rate control is required, consider using α = %.4f per cohort (Bonferroni correction).\n\n",
+        "### Type I Error Control\n\nEach cohort is tested at significance level alpha = %.3f. With %d independent cohorts, the family-wise error rate (probability of at least one false positive when all nulls are true) is approximately %.3f under independence.\n\nNote: If strict family-wise error rate control is required, consider using alpha = %.4f per cohort (Bonferroni correction).\n\n",
         design$alpha,
         design$n_baskets,
         1 - (1 - design$alpha)^design$n_baskets,
@@ -682,7 +682,7 @@ generate_protocol_language.simon_design <- function(design,
   } else {
     # Single cohort - just describe the Type I error rate
     multiple_testing_text <- sprintf(
-      "### Type I Error Control\n\nThe design is calibrated to achieve a Type I error rate of α = %.3f, meaning there is at most a %.1f%% probability of concluding the treatment is efficacious when the true response rate is at or below the null hypothesis value.\n\n",
+      "### Type I Error Control\n\nThe design is calibrated to achieve a Type I error rate of alpha = %.3f, meaning there is at most a %.1f%% probability of concluding the treatment is efficacious when the true response rate is at or below the null hypothesis value.\n\n",
       design$alpha,
       design$alpha * 100
     )
@@ -718,19 +718,19 @@ generate_protocol_language.simon_design <- function(design,
       "*Note: The specific design parameters (n1, r1, n, r) will be calculated using the Simon (1989) method based on the above specifications and documented in the Statistical Analysis Plan.*\n\n"
     )
   } else {
-    decision_text <- "### Decision Criteria\n\n**Stage 1 Decision (Futility)**:\nFor each cohort, if the number of responses in the first n1 patients is ≤ r1, enrollment to that cohort stops and the treatment is declared not promising for that cohort. Cohorts may continue accrual uninterrupted if (r1 + 1) or more responses are observed before reaching n1 patients.\n\n**Final Decision (Efficacy)**:\nFor cohorts that continue to Stage 2, if the total number of responses is (r + 1) or more across all n patients, the treatment is declared promising for that cohort (H0 is rejected).\n\n"
+    decision_text <- "### Decision Criteria\n\n**Stage 1 Decision (Futility)**:\nFor each cohort, if the number of responses in the first n1 patients is <= r1, enrollment to that cohort stops and the treatment is declared not promising for that cohort. Cohorts may continue accrual uninterrupted if (r1 + 1) or more responses are observed before reaching n1 patients.\n\n**Final Decision (Efficacy)**:\nFor cohorts that continue to Stage 2, if the total number of responses is (r + 1) or more across all n patients, the treatment is declared promising for that cohort (H0 is rejected).\n\n"
   }
   
   # Operating characteristics
   oc_text <- "## Operating Characteristics\n\nThe design has been calibrated to achieve:\n"
   if (design$n_baskets == 1) {
     oc_text <- paste0(oc_text, sprintf(
-      "- Type I error rate: α = %.3f (%.1f%% probability of false positive)\n",
+      "- Type I error rate: alpha = %.3f (%.1f%% probability of false positive)\n",
       design$alpha,
       design$alpha * 100
     ))
     oc_text <- paste0(oc_text, sprintf(
-      "- Power: ≥ %.1f%% (at alternative response rate of %.1f%%)\n",
+      "- Power: >= %.1f%% (at alternative response rate of %.1f%%)\n",
       (1 - design$beta) * 100,
       design$alternative_response_rates[1] * 100
     ))
@@ -741,11 +741,11 @@ generate_protocol_language.simon_design <- function(design,
     oc_text <- paste0(oc_text, "\n\nDetailed design parameters (n1, r1, n, r) are calculated using the Simon (1989) method to achieve these operating characteristics.\n\n")
   } else {
     oc_text <- paste0(oc_text, sprintf(
-      "- Type I error rate per cohort: α = %.4f\n",
+      "- Type I error rate per cohort: alpha = %.4f\n",
       design$alpha
     ))
     oc_text <- paste0(oc_text, sprintf(
-      "- Power per cohort: ≥ %.1f%% (at alternative response rate)\n",
+      "- Power per cohort: >= %.1f%% (at alternative response rate)\n",
       (1 - design$beta) * 100
     ))
     oc_text <- paste0(oc_text, sprintf(
