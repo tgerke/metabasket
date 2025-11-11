@@ -21,6 +21,8 @@ test_that("simulate_responses generates correct structure", {
 
 
 test_that("extract_rejections works for BMA results", {
+  skip_if_pkg_not_available("bmabasket")
+  
   design <- basket_design(
     n_baskets = 3,
     sample_sizes = 20,
@@ -67,6 +69,8 @@ test_that("extract_rejections works for MEM results", {
 
 
 test_that("compute_operating_characteristics produces valid structure", {
+  skip_if_pkg_not_available("bmabasket")
+  
   design <- basket_design(
     n_baskets = 4,
     sample_sizes = 25,
@@ -103,6 +107,8 @@ test_that("compute_operating_characteristics produces valid structure", {
 
 
 test_that("BMA maintains FWER under global null", {
+  skip_if_pkg_not_available("bmabasket")
+  
   # Global null: all baskets non-promising
   design <- basket_design(
     n_baskets = 4,
@@ -124,6 +130,8 @@ test_that("BMA maintains FWER under global null", {
 
 
 test_that("BMA has reasonable power under global alternative", {
+  skip_if_pkg_not_available("bmabasket")
+  
   # Global alternative: all baskets promising
   design <- basket_design(
     n_baskets = 4,
@@ -176,6 +184,8 @@ test_that("MEM has reasonable power under global alternative", {
 
 
 test_that("simulate_basket_trial returns complete structure", {
+  skip_if_pkg_not_available("bmabasket")
+  
   design <- basket_design(
     n_baskets = 3,
     sample_sizes = 20,
@@ -195,6 +205,8 @@ test_that("simulate_basket_trial returns complete structure", {
 
 
 test_that("Type I error controlled for non-promising baskets", {
+  skip_if_pkg_not_available("bmabasket")
+  
   # Mixed scenario: some promising, some not
   design <- basket_design(
     n_baskets = 4,
@@ -231,6 +243,8 @@ test_that("extract_rejections handles empty results gracefully", {
 
 
 test_that("operating characteristics reject impossible values", {
+  skip_if_pkg_not_available("bmabasket")
+  
   design <- basket_design(
     n_baskets = 3,
     sample_sizes = 20,

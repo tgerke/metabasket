@@ -48,11 +48,50 @@ jobs:
         env:
           PKGCACHE_HTTP_VERSION: 2
       
-      - name: Remove problematic packages on macOS
+      - name: Reinstall bmabasket from source on macOS if needed
         if: runner.os == 'macOS'
         run: |
-          # Remove packages that cause segfaults on macOS ARM64
-          Rscript -e "try(remove.packages(c('bmabasket', 'basket', 'bhmbasket')), silent = TRUE)"
+          # If the binary package is broken, try installing from source
+          echo "Checking bmabasket installation..."
+          if ! timeout 5 Rscript -e "loadNamespace('bmabasket')" 2>/dev/null; then
+            echo "Binary bmabasket appears broken, attempting source installation..."
+            Rscript -e "remove.packages('bmabasket', quiet = TRUE)" || true
+            Rscript -e "install.packages('bmabasket', repos = 'https://cloud.r-project.org', type = 'source')" || echo "Source installation also failed"
+          fi
+        shell: bash
+        continue-on-error: true
+      
+      - name: Test and remove broken packages on macOS
+        if: runner.os == 'macOS'
+        run: |
+          # Test if packages can be loaded without crashing
+          # Only bmabasket has compiled code that might segfault on ARM64
+          echo "Testing bmabasket (has compiled code)..."
+          
+          # Use timeout and test in subprocess to catch crashes
+          if timeout 5 Rscript -e "tryCatch(loadNamespace('bmabasket'), error = function(e) quit(status = 1))" 2>/dev/null; then
+            echo "✓ bmabasket loaded successfully"
+          else
+            echo "✗ bmabasket failed to load (exit code: $?), removing..."
+            Rscript -e "try(remove.packages('bmabasket'), silent = TRUE)" || true
+          fi
+          
+          # basket and bhmbasket are pure R, should work fine
+          echo "Testing basket (pure R)..."
+          if Rscript -e "loadNamespace('basket')" 2>/dev/null; then
+            echo "✓ basket loaded successfully"
+          else
+            echo "✗ basket failed, removing..."
+            Rscript -e "try(remove.packages('basket'), silent = TRUE)" || true
+          fi
+          
+          echo "Testing bhmbasket (pure R)..."
+          if Rscript -e "loadNamespace('bhmbasket')" 2>/dev/null; then
+            echo "✓ bhmbasket loaded successfully"
+          else
+            echo "✗ bhmbasket failed, removing..."
+            Rscript -e "try(remove.packages('bhmbasket'), silent = TRUE)" || true
+          fi
         shell: bash
 
       - uses: r-lib/actions/check-r-package@v2

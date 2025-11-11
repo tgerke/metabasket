@@ -69,7 +69,8 @@
 * **NEW**: 12 parallel execution tests verifying identical results between sequential and parallel modes
 * doFuture backend registration in test setup to suppress foreach messages
 * Tests gracefully skip when optional method packages (bmabasket, basket, bhmbasket) are not available
-* CI workflow removes packages with platform-specific compilation issues before testing (macOS ARM64)
+* CI workflow tests package loadability and attempts source installation for packages with compilation issues
+* Packages that cannot be loaded on a platform are removed before testing (prevents segfaults)
 
 ### Documentation
 
