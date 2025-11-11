@@ -67,8 +67,9 @@
 * Extensive tests for Cunanan design (interim analysis, futility stopping, final analyses)
 * Extensive tests for Simon design (parameter calculation, FWER control, power)
 * **NEW**: 12 parallel execution tests verifying identical results between sequential and parallel modes
-* **NEW**: Safe package availability checking that catches segfaults on platforms with compilation issues
 * doFuture backend registration in test setup to suppress foreach messages
+* Tests gracefully skip when optional method packages (bmabasket, basket, bhmbasket) are not available
+* CI workflow removes packages with platform-specific compilation issues before testing (macOS ARM64)
 
 ### Documentation
 

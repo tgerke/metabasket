@@ -1,5 +1,5 @@
 test_that("Progress reporting works without errors", {
-  safe_skip_if_not_installed("bmabasket")
+  skip_if_pkg_not_available("bmabasket")
   
   # Test that simulations complete successfully with progressr enabled
   # (progressr will be silent unless handlers are explicitly set)
@@ -27,7 +27,7 @@ test_that("Progress reporting works without errors", {
 
 test_that("Progress reporting works with parallel execution", {
   skip_on_cran()
-  safe_skip_if_not_installed("bmabasket")
+  skip_if_pkg_not_available("bmabasket")
   
   design <- basket_design(
     design_type = "bma",

@@ -13,16 +13,14 @@ if (requireNamespace("doFuture", quietly = TRUE) &&
   future::plan(future::sequential)
 }
 
-# Safe package availability check that catches segfaults/errors
-# Some packages (like bmabasket) may have issues on certain platforms
-safe_skip_if_not_installed <- function(pkg) {
-  can_load <- tryCatch({
-    requireNamespace(pkg, quietly = TRUE)
-  }, error = function(e) {
-    FALSE
-  })
+# Custom skip function that checks package installation WITHOUT loading
+# This prevents segfaults from broken compiled packages on certain platforms
+skip_if_pkg_not_available <- function(pkg) {
+  # Check if package is installed without trying to load it
+  pkg_path <- system.file(package = pkg)
+  is_installed <- pkg_path != ""
   
-  if (!can_load) {
-    testthat::skip(sprintf("Package '%s' not available or cannot be loaded", pkg))
+  if (!is_installed) {
+    testthat::skip(sprintf("Package '%s' is not installed", pkg))
   }
 }

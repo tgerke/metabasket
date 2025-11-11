@@ -47,6 +47,13 @@ jobs:
           needs: check
         env:
           PKGCACHE_HTTP_VERSION: 2
+      
+      - name: Remove problematic packages on macOS
+        if: runner.os == 'macOS'
+        run: |
+          # Remove packages that cause segfaults on macOS ARM64
+          Rscript -e "try(remove.packages(c('bmabasket', 'basket', 'bhmbasket')), silent = TRUE)"
+        shell: bash
 
       - uses: r-lib/actions/check-r-package@v2
         with:

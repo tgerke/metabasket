@@ -1,7 +1,7 @@
 test_that("parallel simulation gives identical results to sequential (BMA)", {
-  safe_skip_if_not_installed("bmabasket")
-  safe_skip_if_not_installed("future")
-  safe_skip_if_not_installed("furrr")
+  skip_if_pkg_not_available("bmabasket")
+  skip_if_not_installed("future")
+  skip_if_not_installed("furrr")
   
   # Create a simple design
   design <- basket_design(
@@ -53,9 +53,9 @@ test_that("parallel simulation gives identical results to sequential (BMA)", {
 
 
 test_that("parallel simulation gives identical results to sequential (MEM)", {
-  safe_skip_if_not_installed("basket")
-  safe_skip_if_not_installed("future")
-  safe_skip_if_not_installed("furrr")
+  skip_if_not_installed("basket")
+  skip_if_not_installed("future")
+  skip_if_not_installed("furrr")
   
   design <- basket_design(
     n_baskets = 3,
@@ -97,8 +97,8 @@ test_that("parallel simulation gives identical results to sequential (MEM)", {
 
 
 test_that("parallel simulation gives identical results to sequential (Cunanan)", {
-  safe_skip_if_not_installed("future")
-  safe_skip_if_not_installed("furrr")
+  skip_if_not_installed("future")
+  skip_if_not_installed("furrr")
   
   design <- basket_design(
     n_baskets = 3,
@@ -138,7 +138,7 @@ test_that("parallel simulation gives identical results to sequential (Cunanan)",
 
 
 test_that(".parallelize = FALSE uses lapply (backward compatible)", {
-  safe_skip_if_not_installed("bmabasket")
+  skip_if_pkg_not_available("bmabasket")
   
   design <- basket_design(
     n_baskets = 2,
@@ -160,9 +160,9 @@ test_that(".parallelize = FALSE uses lapply (backward compatible)", {
 
 
 test_that("parallel execution respects future plan", {
-  safe_skip_if_not_installed("bmabasket")
-  safe_skip_if_not_installed("future")
-  safe_skip_if_not_installed("furrr")
+  skip_if_pkg_not_available("bmabasket")
+  skip_if_not_installed("future")
+  skip_if_not_installed("furrr")
   
   design <- basket_design(
     n_baskets = 2,
