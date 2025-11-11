@@ -55,38 +55,50 @@ jobs:
           echo "Testing optional packages on macOS ARM64"
           echo "========================================="
           
-          # Test bmabasket (has compiled code)
-          echo ""
-          echo "Testing bmabasket..."
-          if timeout 5 Rscript -e "loadNamespace('bmabasket'); cat('OK\n')" 2>&1; then
-            echo "✓ bmabasket loaded successfully"
-          else
-            EXITCODE=$?
-            echo "✗ bmabasket failed (exit: $EXITCODE), removing..."
-            Rscript -e "try(remove.packages('bmabasket'), silent = TRUE)" 2>/dev/null || true
-          fi
+          # Function to test package loading with background process and timeout
+          test_package() {
+            local pkg=$1
+            echo ""
+            echo "Testing $pkg..."
+            
+            # Run in background and get PID
+            Rscript -e "loadNamespace('$pkg'); cat('LOADED_OK\n')" > /tmp/test_${pkg}.log 2>&1 &
+            local pid=$!
+            
+            # Wait up to 5 seconds
+            local count=0
+            while kill -0 $pid 2>/dev/null && [ $count -lt 50 ]; do
+              sleep 0.1
+              count=$((count + 1))
+            done
+            
+            # Check if still running
+            if kill -0 $pid 2>/dev/null; then
+              echo "✗ $pkg timed out, killing process..."
+              kill -9 $pid 2>/dev/null || true
+              wait $pid 2>/dev/null || true
+              Rscript -e "try(remove.packages('$pkg'), silent = TRUE)" 2>/dev/null || true
+              return 1
+            fi
+            
+            # Check result
+            wait $pid
+            local exitcode=$?
+            if [ $exitcode -eq 0 ] && grep -q "LOADED_OK" /tmp/test_${pkg}.log 2>/dev/null; then
+              echo "✓ $pkg loaded successfully"
+              return 0
+            else
+              echo "✗ $pkg failed (exit: $exitcode), removing..."
+              cat /tmp/test_${pkg}.log
+              Rscript -e "try(remove.packages('$pkg'), silent = TRUE)" 2>/dev/null || true
+              return 1
+            fi
+          }
           
-          # Test basket (pure R, but has many compiled dependencies)
-          echo ""
-          echo "Testing basket (depends on GenSA, tibble, dplyr, igraph, etc)..."
-          if timeout 5 Rscript -e "loadNamespace('basket'); cat('OK\n')" 2>&1; then
-            echo "✓ basket loaded successfully"
-          else
-            EXITCODE=$?
-            echo "✗ basket failed (exit: $EXITCODE), removing..."
-            Rscript -e "try(remove.packages('basket'), silent = TRUE)" 2>/dev/null || true
-          fi
-          
-          # Test bhmbasket (pure R, depends on rjags/JAGS)
-          echo ""
-          echo "Testing bhmbasket..."
-          if timeout 5 Rscript -e "loadNamespace('bhmbasket'); cat('OK\n')" 2>&1; then
-            echo "✓ bhmbasket loaded successfully"
-          else
-            EXITCODE=$?
-            echo "✗ bhmbasket failed (exit: $EXITCODE), removing..."
-            Rscript -e "try(remove.packages('bhmbasket'), silent = TRUE)" 2>/dev/null || true
-          fi
+          # Test each package
+          test_package "bmabasket"
+          test_package "basket"
+          test_package "bhmbasket"
           
           echo ""
           echo "========================================="
