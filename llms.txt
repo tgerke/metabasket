@@ -566,27 +566,40 @@ export_protocol_language(design, file = "protocol_section.md")
 
 ### Key Papers
 
-**Review:** - Zhou T, Ji Y. Bayesian Methods for Information Borrowing
-in Basket Trials: An Overview. *Cancers*. 2024;16(2):251.
-[PMC10813856](https://pmc.ncbi.nlm.nih.gov/articles/PMC10813856/)
+**Review:**
 
-**Methods:** 1. **BMA**: Psioda MA, et al. Bayesian adaptive basket
-trial design using model averaging. *Biostatistics*. 2021;22(1):19-34.
-2. **MEM**: Hobbs BP, Landin R. Bayesian basket trial design with
-exchangeability monitoring. *Stat Med*. 2018;37(25):3557-3572. 3.
-**EXNEX**: Neuenschwander B, et al. Robust exchangeability designs for
-early phase clinical trials. *Pharm Stat*. 2016;15(2):123-134. 4.
-**BHM**: Berry SM, et al. Bayesian hierarchical modeling of patient
-subpopulations. *Clin Trials*. 2013;10(5):720-734. 5. **Cunanan**:
-Cunanan KM, et al. An efficient basket trial design. *Stat Med*.
-2017;36(10):1568-1579. 6. **Simon**: Simon R. Optimal two-stage designs
-for phase II clinical trials. *Control Clin Trials*. 1989;10(1):1-10.
+1.  Zhou T, Ji Y. Bayesian Methods for Information Borrowing in Basket
+    Trials: An Overview. *Cancers*. 2024;16(2):251.
+    [PMC10813856](https://pmc.ncbi.nlm.nih.gov/articles/PMC10813856/)
 
-**Trial Examples:** - Chugh R, et al. Phase II multicenter trial of
-imatinib in 10 histologic subtypes of sarcoma. *J Clin Oncol*.
-2009;27(19):3148-3153. - Hyman DM, et al. Vemurafenib in multiple
-nonmelanoma cancers with BRAF V600 mutations. *N Engl J Med*.
-2015;373(8):726-736.
+**Methods:**
+
+1.  **BMA**: Psioda MA, et al. Bayesian adaptive basket trial design
+    using model averaging. *Biostatistics*. 2021;22(1):19-34.
+
+2.  **MEM**: Hobbs BP, Landin R. Bayesian basket trial design with
+    exchangeability monitoring. *Stat Med*. 2018;37(25):3557-3572.
+
+3.  **EXNEX**: Neuenschwander B, et al. Robust exchangeability designs
+    for early phase clinical trials. *Pharm Stat*. 2016;15(2):123-134.
+
+4.  **BHM**: Berry SM, et al. Bayesian hierarchical modeling of patient
+    subpopulations. *Clin Trials*. 2013;10(5):720-734.
+
+5.  **Cunanan**: Cunanan KM, et al. An efficient basket trial design.
+    *Stat Med*. 2017;36(10):1568-1579.
+
+6.  **Simon**: Simon R. Optimal two-stage designs for phase II clinical
+    trials. *Control Clin Trials*. 1989;10(1):1-10.
+
+**Trial Examples:**
+
+1.  Chugh R, et al. Phase II multicenter trial of imatinib in 10
+    histologic subtypes of sarcoma. *J Clin Oncol*.
+    2009;27(19):3148-3153.
+
+2.  Hyman DM, et al. Vemurafenib in multiple nonmelanoma cancers with
+    BRAF V600 mutations. *N Engl J Med*. 2015;373(8):726-736.
 
 ## License
 
@@ -700,6 +713,19 @@ Functions for generating protocol language
 - [`export_protocol_language()`](https://tgerke.github.io/metabasket/reference/export_protocol_language.md)
   : Export protocol language to file
 
+## Reporting Functions
+
+Functions for trial reporting and analysis
+
+- [`generate_analysis_report()`](https://tgerke.github.io/metabasket/reference/generate_analysis_report.md)
+  : Generate comprehensive analysis report
+- [`calculate_conditional_power()`](https://tgerke.github.io/metabasket/reference/calculate_conditional_power.md)
+  : Calculate conditional power for adaptive decisions
+- [`generate_preregistration()`](https://tgerke.github.io/metabasket/reference/generate_preregistration.md)
+  : Generate pre-registration document
+- [`print(`*`<conditional_power_result>`*`)`](https://tgerke.github.io/metabasket/reference/print.conditional_power_result.md)
+  : Print conditional power results
+
 ## Example Datasets
 
 Published basket trial data
@@ -722,3 +748,8 @@ Published basket trial data
   Designs](https://tgerke.github.io/metabasket/articles/design_comparison.md):
 - [Drug Combination Trial Design: A Practical
   Example](https://tgerke.github.io/metabasket/articles/drug_combination_trial.md):
+
+### Special Use Cases
+
+- [Simon Two-Stage Designs in
+  metabasket](https://tgerke.github.io/metabasket/articles/simon_designs.md):

@@ -105,6 +105,18 @@
   between sequential and parallel modes
 - doFuture backend registration in test setup to suppress foreach
   messages
+- Tests gracefully skip when optional method packages (bmabasket,
+  basket, bhmbasket, clinfun) are not available  
+- Test setup pre-loads optional packages to detect platform-specific
+  issues before tests run
+- CI workflow automatically removes packages with known compiled code
+  issues on macOS ARM64 (bmabasket, clinfun)
+- Parallel execution tests skip on macOS due to segfaults in purrr/furrr
+  compiled code on ARM64
+- Tests skip gracefully when packages/features unavailable while
+  maintaining full coverage on other platforms (Windows, Linux)
+- Custom skip function checks pre-loaded package availability to prevent
+  runtime crashes
 
 #### Documentation
 
@@ -114,6 +126,8 @@
 - **NEW**: Drug combination trial vignette with real-world simulation
   examples
 - **NEW**: Design comparison vignette demonstrating method selection
+- **NEW**: Simon designs vignette showcasing parallel workflows and
+  protocol generation
 - Set up pkgdown website configuration with logo
 - All functions fully documented with examples
 - Utility functions for design comparison and sample size calculation
@@ -159,10 +173,49 @@
 - Very large simulation studies (n \> 10,000) may require significant
   memory
 
+#### Enhanced Reporting and Documentation (NEW)
+
+- **Analysis reporting with confidence intervals**:
+  - New
+    [`generate_analysis_report()`](https://tgerke.github.io/metabasket/reference/generate_analysis_report.md)
+    function creates comprehensive analysis reports
+  - Includes exact binomial confidence intervals for response rates
+  - Supports multiple output formats: text, markdown, HTML, LaTeX
+  - Stage-specific reporting for two-stage designs (Cunanan, Simon)
+  - Decision summaries with design-specific details
+- **Multiple export formats for protocol documents**:
+  - Enhanced
+    [`export_protocol_language()`](https://tgerke.github.io/metabasket/reference/export_protocol_language.md)
+    supports .md, .html, .tex, .docx, .Rmd formats
+  - R Markdown export includes reproducible code chunks
+  - HTML export with styled output for web viewing
+  - LaTeX export for formal protocol documents
+  - Word export (.docx) via officer package for easy sharing and editing
+  - Format automatically determined from file extension
+- **Conditional power calculations for adaptive decisions**:
+  - New
+    [`calculate_conditional_power()`](https://tgerke.github.io/metabasket/reference/calculate_conditional_power.md)
+    function for interim decision support
+  - Monte Carlo-based conditional power estimation
+  - Supports both Cunanan and Simon designs
+  - Helps determine whether to continue baskets based on interim data
+- **Pre-registration document generation**:
+  - New
+    [`generate_preregistration()`](https://tgerke.github.io/metabasket/reference/generate_preregistration.md)
+    function creates structured pre-registration documents
+  - Includes study design, hypotheses, and statistical analysis plan
+  - Suitable for submission to OSF, ClinicalTrials.gov, etc.
+  - Promotes transparency and rigor in trial conduct
+
 #### Future Enhancements
 
 - Additional design types as new methods are published
-- Extended protocol language templates
+- Extended reporting features:
+  - Adjusted p-values and median unbiased estimates for sequential
+    designs
+  - Comprehensive stage-by-stage summary tables (cumulative statistics,
+    boundaries, power)
+  - Automated sensitivity analysis reports
+  - Design comparison reports with visualization
 - Additional real-world trial examples
 - Shiny app for interactive design exploration
-- Custom progress handler themes

@@ -5,7 +5,8 @@ articles:
   design_comparison: design_comparison.html
   drug_combination_trial: drug_combination_trial.html
   introduction: introduction.html
-last_built: 2025-11-10T20:40Z
+  simon_designs: simon_designs.html
+last_built: 2025-11-11T20:30Z
 urls:
   reference: https://tgerke.github.io/metabasket/reference
   article: https://tgerke.github.io/metabasket/articles

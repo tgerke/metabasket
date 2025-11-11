@@ -90,6 +90,19 @@ Functions for generating protocol language
 - [`export_protocol_language()`](https://tgerke.github.io/metabasket/reference/export_protocol_language.md)
   : Export protocol language to file
 
+## Reporting Functions
+
+Functions for trial reporting and analysis
+
+- [`generate_analysis_report()`](https://tgerke.github.io/metabasket/reference/generate_analysis_report.md)
+  : Generate comprehensive analysis report
+- [`calculate_conditional_power()`](https://tgerke.github.io/metabasket/reference/calculate_conditional_power.md)
+  : Calculate conditional power for adaptive decisions
+- [`generate_preregistration()`](https://tgerke.github.io/metabasket/reference/generate_preregistration.md)
+  : Generate pre-registration document
+- [`print(`*`<conditional_power_result>`*`)`](https://tgerke.github.io/metabasket/reference/print.conditional_power_result.md)
+  : Print conditional power results
+
 ## Example Datasets
 
 Published basket trial data

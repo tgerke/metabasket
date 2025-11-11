@@ -17,7 +17,7 @@ generate_protocol_language(
 
 - design:
 
-  A basket_design object
+  A basket_design or simon_design object
 
 - include_statistical_details:
 
