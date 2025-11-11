@@ -71,7 +71,8 @@
 * Tests gracefully skip when optional method packages (bmabasket, basket, bhmbasket, clinfun) are not available  
 * Test setup pre-loads optional packages to detect platform-specific issues before tests run
 * CI workflow automatically removes packages with known compiled code issues on macOS ARM64 (bmabasket, clinfun)
-* Tests skip gracefully when packages unavailable while maintaining full coverage on other platforms (Windows, Linux)
+* Parallel execution tests skip on macOS due to segfaults in purrr/furrr compiled code on ARM64
+* Tests skip gracefully when packages/features unavailable while maintaining full coverage on other platforms (Windows, Linux)
 * Custom skip function checks pre-loaded package availability to prevent runtime crashes
 
 ### Documentation
