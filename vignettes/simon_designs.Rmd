@@ -85,7 +85,7 @@ The design parameters come directly from `clinfun::ph2simon`, ensuring accuracy.
 Convert the design to human-readable protocol text:
 
 ```{r protocol_text}
-protocol_text <- protocol_language(design)
+protocol_text <- generate_protocol_language(design)
 cat(protocol_text)
 ```
 
