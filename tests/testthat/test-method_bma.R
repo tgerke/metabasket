@@ -1,5 +1,5 @@
 test_that("BMA analysis works with basic data", {
-  skip_if_not_installed("bmabasket")
+  safe_safe_skip_if_not_installed("bmabasket")
   
   # Create simple basket trial data
   data <- basket_data(
@@ -37,7 +37,7 @@ test_that("BMA analysis works with basic data", {
 
 
 test_that("BMA analysis respects custom prior parameters", {
-  skip_if_not_installed("bmabasket")
+  safe_skip_if_not_installed("bmabasket")
   
   data <- basket_data(
     basket_names = c("A", "B"),
@@ -69,7 +69,7 @@ test_that("BMA analysis respects custom prior parameters", {
 
 
 test_that("extract_rejections works for BMA results", {
-  skip_if_not_installed("bmabasket")
+  safe_skip_if_not_installed("bmabasket")
   
   data <- basket_data(
     basket_names = c("X", "Y", "Z"),
@@ -97,7 +97,7 @@ test_that("extract_rejections works for BMA results", {
 
 
 test_that("print method works for BMA results", {
-  skip_if_not_installed("bmabasket")
+  safe_skip_if_not_installed("bmabasket")
   
   data <- basket_data(
     basket_names = c("Test1", "Test2"),
@@ -123,7 +123,7 @@ test_that("print method works for BMA results", {
 
 
 test_that("BMA analysis validates inputs", {
-  skip_if_not_installed("bmabasket")
+  safe_skip_if_not_installed("bmabasket")
   
   data <- basket_data(
     basket_names = c("A", "B"),
@@ -160,7 +160,7 @@ test_that("BMA analysis validates inputs", {
 
 
 test_that("BMA analysis handles different threshold values", {
-  skip_if_not_installed("bmabasket")
+  safe_skip_if_not_installed("bmabasket")
   
   data <- basket_data(
     basket_names = c("A", "B", "C"),
@@ -195,7 +195,7 @@ test_that("BMA analysis handles different threshold values", {
 
 
 test_that("BMA handles vemurafenib trial data", {
-  skip_if_not_installed("bmabasket")
+  safe_skip_if_not_installed("bmabasket")
   
   data(vemurafenib_trial)
   

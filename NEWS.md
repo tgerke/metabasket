@@ -67,6 +67,7 @@
 * Extensive tests for Cunanan design (interim analysis, futility stopping, final analyses)
 * Extensive tests for Simon design (parameter calculation, FWER control, power)
 * **NEW**: 12 parallel execution tests verifying identical results between sequential and parallel modes
+* **NEW**: Safe package availability checking that catches segfaults on platforms with compilation issues
 * doFuture backend registration in test setup to suppress foreach messages
 
 ### Documentation
@@ -75,6 +76,7 @@
 * Introduction vignette covering all five design types
 * **NEW**: Drug combination trial vignette with real-world simulation examples
 * **NEW**: Design comparison vignette demonstrating method selection
+* **NEW**: Simon designs vignette showcasing parallel workflows and protocol generation
 * Set up pkgdown website configuration with logo
 * All functions fully documented with examples
 * Utility functions for design comparison and sample size calculation

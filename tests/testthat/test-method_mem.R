@@ -1,5 +1,5 @@
 test_that("MEM analysis works with basic data", {
-  skip_if_not_installed("basket")
+  safe_skip_if_not_installed("basket")
   
   # Create simple basket trial data
   data <- basket_data(
@@ -43,7 +43,7 @@ test_that("MEM analysis works with basic data", {
 
 
 test_that("MEM analysis respects custom prior parameters", {
-  skip_if_not_installed("basket")
+  safe_skip_if_not_installed("basket")
   
   data <- basket_data(
     basket_names = c("A", "B"),
@@ -74,7 +74,7 @@ test_that("MEM analysis respects custom prior parameters", {
 
 
 test_that("extract_rejections works for MEM results", {
-  skip_if_not_installed("basket")
+  safe_skip_if_not_installed("basket")
   
   data <- basket_data(
     basket_names = c("X", "Y", "Z"),
@@ -102,7 +102,7 @@ test_that("extract_rejections works for MEM results", {
 
 
 test_that("print method works for MEM results", {
-  skip_if_not_installed("basket")
+  safe_skip_if_not_installed("basket")
   
   data <- basket_data(
     basket_names = c("Test1", "Test2"),
@@ -129,7 +129,7 @@ test_that("print method works for MEM results", {
 
 
 test_that("MEM analysis validates inputs", {
-  skip_if_not_installed("basket")
+  safe_skip_if_not_installed("basket")
   
   data <- basket_data(
     basket_names = c("A", "B"),
@@ -166,7 +166,7 @@ test_that("MEM analysis validates inputs", {
 
 
 test_that("MEM analysis handles different threshold values", {
-  skip_if_not_installed("basket")
+  safe_skip_if_not_installed("basket")
   
   data <- basket_data(
     basket_names = c("A", "B", "C"),
@@ -201,7 +201,7 @@ test_that("MEM analysis handles different threshold values", {
 
 
 test_that("MEM handles vemurafenib trial data", {
-  skip_if_not_installed("basket")
+  safe_skip_if_not_installed("basket")
   
   data(vemurafenib_trial)
   
@@ -230,7 +230,7 @@ test_that("MEM handles vemurafenib trial data", {
 
 
 test_that("MEM exchangeability matrix is computed", {
-  skip_if_not_installed("basket")
+  safe_skip_if_not_installed("basket")
   
   data <- basket_data(
     basket_names = c("A", "B", "C"),
@@ -261,7 +261,7 @@ test_that("MEM exchangeability matrix is computed", {
 
 
 test_that("MEM handles custom prior matrix", {
-  skip_if_not_installed("basket")
+  safe_skip_if_not_installed("basket")
   
   data <- basket_data(
     basket_names = c("A", "B", "C"),

@@ -26,7 +26,7 @@ test_that("BHM method requires bhmbasket package", {
 })
 
 test_that("BHM analysis works with JAGS installed", {
-  skip_if_not_installed("bhmbasket")
+  safe_skip_if_not_installed("bhmbasket")
   skip_if_not(tryCatch({
     requireNamespace("rjags", quietly = TRUE)
   }, error = function(e) FALSE), "JAGS not installed")
@@ -81,7 +81,7 @@ test_that("BHM analysis works with JAGS installed", {
 })
 
 test_that("BHM works with different methods", {
-  skip_if_not_installed("bhmbasket")
+  safe_skip_if_not_installed("bhmbasket")
   skip_if_not(tryCatch({
     requireNamespace("rjags", quietly = TRUE)
   }, error = function(e) FALSE), "JAGS not installed")
@@ -127,7 +127,7 @@ test_that("BHM works with different methods", {
 })
 
 test_that("BHM rejects invalid methods", {
-  skip_if_not_installed("bhmbasket")
+  safe_skip_if_not_installed("bhmbasket")
   skip_if_not(tryCatch({
     requireNamespace("rjags", quietly = TRUE)
   }, error = function(e) FALSE), "JAGS not installed")
@@ -153,7 +153,7 @@ test_that("BHM rejects invalid methods", {
 })
 
 test_that("BHM print method works", {
-  skip_if_not_installed("bhmbasket")
+  safe_skip_if_not_installed("bhmbasket")
   skip_if_not(tryCatch({
     requireNamespace("rjags", quietly = TRUE)
   }, error = function(e) FALSE), "JAGS not installed")
@@ -188,7 +188,7 @@ test_that("BHM print method works", {
 })
 
 test_that("extract_rejections works for BHM", {
-  skip_if_not_installed("bhmbasket")
+  safe_skip_if_not_installed("bhmbasket")
   skip_if_not(tryCatch({
     requireNamespace("rjags", quietly = TRUE)
   }, error = function(e) FALSE), "JAGS not installed")
@@ -216,7 +216,7 @@ test_that("extract_rejections works for BHM", {
 })
 
 test_that("BHM works with vemurafenib data", {
-  skip_if_not_installed("bhmbasket")
+  safe_skip_if_not_installed("bhmbasket")
   skip_if_not(tryCatch({
     requireNamespace("rjags", quietly = TRUE)
   }, error = function(e) FALSE), "JAGS not installed")
@@ -258,7 +258,7 @@ test_that("BHM works with vemurafenib data", {
 })
 
 test_that("BHM handles different evidence levels", {
-  skip_if_not_installed("bhmbasket")
+  safe_skip_if_not_installed("bhmbasket")
   skip_if_not(tryCatch({
     requireNamespace("rjags", quietly = TRUE)
   }, error = function(e) FALSE), "JAGS not installed")
@@ -308,7 +308,7 @@ test_that("BHM handles different evidence levels", {
 })
 
 test_that("BHM default parameters are applied correctly", {
-  skip_if_not_installed("bhmbasket")
+  safe_skip_if_not_installed("bhmbasket")
   skip_if_not(tryCatch({
     requireNamespace("rjags", quietly = TRUE)
   }, error = function(e) FALSE), "JAGS not installed")

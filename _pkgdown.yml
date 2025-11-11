@@ -52,6 +52,14 @@ reference:
       - generate_protocol_language
       - export_protocol_language
   
+  - title: "Reporting Functions"
+    desc: "Functions for trial reporting and analysis"
+    contents:
+      - generate_analysis_report
+      - calculate_conditional_power
+      - generate_preregistration
+      - print.conditional_power_result
+  
   - title: "Example Datasets"
     desc: "Published basket trial data"
     contents:
@@ -66,6 +74,9 @@ articles:
     contents:
       - design_comparison
       - drug_combination_trial
+  - title: "Special Use Cases"
+    contents:
+      - simon_designs
   
 navbar:
   structure:
@@ -88,6 +99,8 @@ navbar:
         href: articles/design_comparison.html
       - text: "Drug Combination Trial: A Practical Example"
         href: articles/drug_combination_trial.html
+      - text: "Simon Designs with metabasket"
+        href: articles/simon_designs.html
     news:
       text: News
       href: news/index.html

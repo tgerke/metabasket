@@ -1,6 +1,6 @@
 test_that("Simon design calculates parameters correctly", {
   # Test with clinfun if available
-  skip_if_not_installed("clinfun")
+  safe_skip_if_not_installed("clinfun")
 
   params <- calculate_simon_design(
     p0 = 0.20,
@@ -21,7 +21,7 @@ test_that("Simon design calculates parameters correctly", {
 
 
 test_that("Simon design minimax differs from optimal", {
-  skip_if_not_installed("clinfun")
+  safe_skip_if_not_installed("clinfun")
 
   optimal <- calculate_simon_design(
     p0 = 0.20, p1 = 0.40,

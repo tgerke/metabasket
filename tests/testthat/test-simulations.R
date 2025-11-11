@@ -45,7 +45,7 @@ test_that("extract_rejections works for BMA results", {
 
 
 test_that("extract_rejections works for MEM results", {
-  skip_if_not_installed("basket")
+  safe_skip_if_not_installed("basket")
   
   design <- basket_design(
     n_baskets = 3,
@@ -152,7 +152,7 @@ test_that("BMA has reasonable power under global alternative", {
 
 
 test_that("MEM has reasonable power under global alternative", {
-  skip_if_not_installed("basket")
+  safe_skip_if_not_installed("basket")
   
   design <- basket_design(
     n_baskets = 4,
@@ -256,7 +256,7 @@ test_that("operating characteristics reject impossible values", {
 # ==============================================================================
 
 test_that("Cunanan two-stage simulation completes without error", {
-  skip_if_not_installed("bmabasket")
+  safe_skip_if_not_installed("bmabasket")
   
   design <- basket_design(
     n_baskets = 4,
@@ -280,7 +280,7 @@ test_that("Cunanan two-stage simulation completes without error", {
 
 
 test_that("Cunanan produces valid rejections (not all NA)", {
-  skip_if_not_installed("bmabasket")
+  safe_skip_if_not_installed("bmabasket")
   
   design <- basket_design(
     n_baskets = 4,
@@ -303,7 +303,7 @@ test_that("Cunanan produces valid rejections (not all NA)", {
 
 
 test_that("Cunanan FWER control under global null", {
-  skip_if_not_installed("bmabasket")
+  safe_skip_if_not_installed("bmabasket")
   
   design <- basket_design(
     n_baskets = 4,
@@ -322,7 +322,7 @@ test_that("Cunanan FWER control under global null", {
 
 
 test_that("Cunanan handles heterogeneous scenarios", {
-  skip_if_not_installed("bmabasket")
+  safe_skip_if_not_installed("bmabasket")
   
   design <- basket_design(
     n_baskets = 5,
