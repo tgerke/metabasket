@@ -82,7 +82,7 @@ The design parameters come directly from `clinfun::ph2simon`, ensuring accuracy.
 
 ### Generate Protocol Language
 
-Convert the design to human-readable protocol text:
+Convert the design to human-readable protocol text suitable for regulatory submissions:
 
 ```{r protocol_text}
 protocol_text <- generate_protocol_language(design)
@@ -131,7 +131,7 @@ print(design_basket)
 ### Protocol Language for Basket Trial
 
 ```{r basket_protocol}
-protocol_text_basket <- protocol_language(design_basket)
+protocol_text_basket <- generate_protocol_language(design_basket)
 cat(protocol_text_basket)
 ```
 

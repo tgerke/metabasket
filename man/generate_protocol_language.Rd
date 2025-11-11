@@ -11,7 +11,7 @@ generate_protocol_language(
 )
 }
 \arguments{
-\item{design}{A basket_design object}
+\item{design}{A basket_design or simon_design object}
 
 \item{include_statistical_details}{Logical. Whether to include technical details}
 

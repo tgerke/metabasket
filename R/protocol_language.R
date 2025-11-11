@@ -4,7 +4,7 @@
 #' Generates standardized protocol text describing a basket trial design,
 #' suitable for inclusion in study protocols and regulatory submissions
 #'
-#' @param design A basket_design object
+#' @param design A basket_design or simon_design object
 #' @param include_statistical_details Logical. Whether to include technical details
 #' @param include_references Logical. Whether to include literature references
 #'
@@ -26,10 +26,13 @@
 generate_protocol_language <- function(design, 
                                       include_statistical_details = TRUE,
                                       include_references = TRUE) {
-  
-  if (!inherits(design, "basket_design")) {
-    stop("design must be a basket_design object")
-  }
+  UseMethod("generate_protocol_language")
+}
+
+#' @export
+generate_protocol_language.basket_design <- function(design, 
+                                      include_statistical_details = TRUE,
+                                      include_references = TRUE) {
   
   # Introduction
   intro <- sprintf(
@@ -551,4 +554,237 @@ generate_word_protocol <- function(design, file, ...) {
   print(doc, target = file)
   
   invisible(NULL)
+}
+
+
+#' @export
+generate_protocol_language.simon_design <- function(design, 
+                                                   include_statistical_details = TRUE,
+                                                   include_references = TRUE) {
+  
+  # Introduction - differs for single vs multiple cohorts
+  if (design$n_baskets == 1) {
+    intro <- sprintf(
+      "This trial uses a Simon two-stage design, the gold standard approach for single-arm phase II trials. The %s design has been selected to %s while maintaining the specified Type I error rate and power.\n\n",
+      toupper(design$design_type),
+      if (design$design_type == "optimal") "minimize the expected sample size under the null hypothesis" else "minimize the maximum sample size"
+    )
+  } else {
+    intro <- sprintf(
+      "This trial uses independent Simon two-stage designs conducted in parallel across %d cancer types or subtypes. Each cohort will be analyzed separately without borrowing information across cohorts, providing a conservative approach that protects against inappropriate pooling of heterogeneous treatment effects. The %s design has been selected to %s.\n\n",
+      design$n_baskets,
+      toupper(design$design_type),
+      if (design$design_type == "optimal") "minimize the expected sample size under the null hypothesis" else "minimize the maximum sample size"
+    )
+  }
+  
+  # Cohort descriptions - only show section header for multiple cohorts
+  if (design$n_baskets > 1) {
+    cohort_desc <- "## Trial Cohorts\n\n"
+    cohort_desc <- paste0(cohort_desc,
+      paste0(sprintf("%d. %s (N = %d patients)\n", 
+                     seq_along(design$basket_names),
+                     design$basket_names,
+                     design$sample_sizes),
+             collapse = "")
+    )
+  } else {
+    cohort_desc <- sprintf("## Trial Population\n\n%s (Maximum N = %d patients)\n", 
+                          design$basket_names[1], 
+                          design$sample_sizes[1])
+  }
+  
+  # Sample size justification
+  if (design$n_baskets == 1) {
+    sample_size_text <- sprintf(
+      "\nThe maximum sample size for this trial is %d patients. The trial uses a Simon two-stage design optimized for single-arm phase II trials.\n\n",
+      design$sample_sizes[1]
+    )
+  } else {
+    sample_size_text <- sprintf(
+      "\nThe maximum total sample size for this trial is %d patients across %d independent cohorts (%s per cohort). Each cohort uses a Simon two-stage design optimized for single-arm phase II trials.\n\n",
+      sum(design$sample_sizes),
+      design$n_baskets,
+      if (length(unique(design$sample_sizes)) == 1) {
+        paste(unique(design$sample_sizes), "patients")
+      } else {
+        "varying numbers of patients"
+      }
+    )
+  }
+  
+  # Statistical approach
+  stat_approach <- "## Statistical Methodology\n\n"
+  if (design$n_baskets == 1) {
+    stat_approach <- paste0(stat_approach,
+      "This trial uses a Simon two-stage design, the most widely accepted approach for single-arm phase II trials in oncology. The design allows for early stopping if the treatment shows insufficient activity, thereby minimizing patient exposure to ineffective therapy while maintaining appropriate statistical properties.\n\n"
+    )
+  } else {
+    stat_approach <- paste0(stat_approach,
+      "This trial uses independent Simon two-stage designs conducted in parallel for each cohort. Each cohort is analyzed separately without borrowing information across cohorts. This approach provides a conservative reference standard and is appropriate when treatment effects may be heterogeneous across cancer types.\n\n"
+    )
+  }
+  
+  if (include_statistical_details) {
+    stat_approach <- paste0(stat_approach,
+      sprintf("### Two-Stage Design\n\nEach cohort follows a two-stage design:\n\n**Stage 1**: Enroll n1 patients and observe the number of responses r1.\n- If responses <= r1, stop for futility (cohort is not promising)\n- If responses > r1, continue to Stage 2\n\n**Stage 2**: Enroll additional patients to reach total sample size n.\n- At final analysis, if total responses > r, reject H0 (cohort is promising)\n- Otherwise, fail to reject H0\n\nThe design parameters (n1, r1, n, r) are calculated using the Simon (1989) method with the following specifications:\n- Null response rate (H0): %s\n- Alternative response rate (H1): %s\n- Type I error rate (per cohort): %.3f\n- Type II error rate (per cohort): %.3f\n- Optimization criterion: %s\n\n",
+        if (length(unique(design$null_response_rates)) == 1) 
+          sprintf("%.1f%%", unique(design$null_response_rates) * 100)
+        else "varies by cohort",
+        if (length(unique(design$alternative_response_rates)) == 1) 
+          sprintf("%.1f%%", unique(design$alternative_response_rates) * 100)
+        else "varies by cohort",
+        design$alpha,
+        design$beta,
+        ifelse(design$design_type == "optimal", 
+               "Minimize expected sample size under H0",
+               "Minimize maximum sample size")
+      )
+    )
+  }
+  
+  # Hypothesis testing
+  if (design$n_baskets == 1) {
+    hypothesis_text <- sprintf(
+      "### Hypothesis Testing\n\nWe test:\n\nH0: π ≤ %.2f (the treatment is not efficacious)\nH1: π > %.2f (the treatment is efficacious)\n\nwhere π represents the true response rate.\n\n",
+      design$null_response_rates[1],
+      design$null_response_rates[1]
+    )
+  } else {
+    hypothesis_text <- sprintf(
+      "### Hypothesis Testing\n\nFor each cohort j (j = 1, ..., %d), we test:\n\nH0: π_j ≤ p0 (the treatment is not efficacious)\nH1: π_j > p0 (the treatment is efficacious)\n\nwhere π_j represents the true response rate for cohort j and p0 is the null response rate.\n\n",
+      design$n_baskets
+    )
+  }
+  
+  # Multiple testing adjustment - only for multiple cohorts
+  if (design$n_baskets > 1) {
+    # Infer intended FWER from the per-test alpha
+    # If user already applied Bonferroni (small alpha), describe it
+    # If alpha is large (e.g., 0.05-0.10), assume it's per-test without correction
+    if (design$alpha <= 0.025) {
+      # User likely already applied Bonferroni
+      multiple_testing_text <- sprintf(
+        "### Multiple Testing Adjustment\n\nTo control the family-wise error rate (FWER) across %d cohorts, a Bonferroni correction is applied. Each individual cohort is tested at significance level α = %.4f. This ensures that the probability of falsely rejecting H0 for at least one cohort is controlled when all null hypotheses are true.\n\n",
+        design$n_baskets,
+        design$alpha
+      )
+    } else {
+      # Describe that testing is at the stated alpha without adjustment
+      multiple_testing_text <- sprintf(
+        "### Type I Error Control\n\nEach cohort is tested at significance level α = %.3f. With %d independent cohorts, the family-wise error rate (probability of at least one false positive when all nulls are true) is approximately %.3f under independence.\n\nNote: If strict family-wise error rate control is required, consider using α = %.4f per cohort (Bonferroni correction).\n\n",
+        design$alpha,
+        design$n_baskets,
+        1 - (1 - design$alpha)^design$n_baskets,
+        design$alpha / design$n_baskets
+      )
+    }
+  } else {
+    # Single cohort - just describe the Type I error rate
+    multiple_testing_text <- sprintf(
+      "### Type I Error Control\n\nThe design is calibrated to achieve a Type I error rate of α = %.3f, meaning there is at most a %.1f%% probability of concluding the treatment is efficacious when the true response rate is at or below the null hypothesis value.\n\n",
+      design$alpha,
+      design$alpha * 100
+    )
+  }
+  
+  # Decision criteria - detailed operational language
+  if (design$n_baskets == 1) {
+    decision_text <- sprintf(
+      "### Decision Criteria\n\nThis study aims to identify an improvement in response rate from %.1f%% (null hypothesis) to %.1f%% (alternative hypothesis) with treatment. Using a two-stage Simon %s design with %.1f%% power and %.1f%% alpha (one-sided), participants will be recruited in two stages as follows:\n\n",
+      design$null_response_rates[1] * 100,
+      design$alternative_response_rates[1] * 100,
+      design$design_type,
+      (1 - design$beta) * 100,
+      design$alpha * 100
+    )
+    
+    decision_text <- paste0(decision_text,
+      "**Stage 1 Enrollment and Interim Analysis:**\n\n",
+      "- Enroll **n1 participants** to the first stage\n",
+      "- If **(r1 + 1) or more** participants meet the primary endpoint, proceed to Stage 2\n",
+      "- If **(r1 + 1) or more** participants meet the endpoint prior to enrollment of n1 participants, accrual will continue uninterrupted from Stage 1 to Stage 2\n",
+      "- If **(r1 + 1) or more** participants have not met the endpoint at the time n1 participants have been enrolled, accrual will be held until:\n",
+      "  - **(r1 + 1) or more** participants have met the endpoint (proceed to Stage 2), OR\n",
+      "  - **n1 - (r1 + 1) or more** participants have failed to meet the endpoint (stop for futility)\n",
+      "- If an insufficient number of participants meet the endpoint to proceed to Stage 2, the trial will be stopped for futility at the conclusion of Stage 1\n\n"
+    )
+    
+    decision_text <- paste0(decision_text,
+      "**Stage 2 Enrollment and Final Analysis:**\n\n",
+      "- If Stage 2 is opened, enroll additional participants to reach a maximum total of **n participants**\n",
+      "- Success is declared when **(r + 1) or more** participants meet the primary endpoint\n",
+      "- If fewer than (r + 1) participants meet the endpoint, fail to reject the null hypothesis\n\n",
+      "*Note: The specific design parameters (n1, r1, n, r) will be calculated using the Simon (1989) method based on the above specifications and documented in the Statistical Analysis Plan.*\n\n"
+    )
+  } else {
+    decision_text <- "### Decision Criteria\n\n**Stage 1 Decision (Futility)**:\nFor each cohort, if the number of responses in the first n1 patients is ≤ r1, enrollment to that cohort stops and the treatment is declared not promising for that cohort. Cohorts may continue accrual uninterrupted if (r1 + 1) or more responses are observed before reaching n1 patients.\n\n**Final Decision (Efficacy)**:\nFor cohorts that continue to Stage 2, if the total number of responses is (r + 1) or more across all n patients, the treatment is declared promising for that cohort (H0 is rejected).\n\n"
+  }
+  
+  # Operating characteristics
+  oc_text <- "## Operating Characteristics\n\nThe design has been calibrated to achieve:\n"
+  if (design$n_baskets == 1) {
+    oc_text <- paste0(oc_text, sprintf(
+      "- Type I error rate: α = %.3f (%.1f%% probability of false positive)\n",
+      design$alpha,
+      design$alpha * 100
+    ))
+    oc_text <- paste0(oc_text, sprintf(
+      "- Power: ≥ %.1f%% (at alternative response rate of %.1f%%)\n",
+      (1 - design$beta) * 100,
+      design$alternative_response_rates[1] * 100
+    ))
+    oc_text <- paste0(oc_text, sprintf(
+      "- Expected sample size: Minimized under H0 (%s design)\n",
+      design$design_type
+    ))
+    oc_text <- paste0(oc_text, "\n\nDetailed design parameters (n1, r1, n, r) are calculated using the Simon (1989) method to achieve these operating characteristics.\n\n")
+  } else {
+    oc_text <- paste0(oc_text, sprintf(
+      "- Type I error rate per cohort: α = %.4f\n",
+      design$alpha
+    ))
+    oc_text <- paste0(oc_text, sprintf(
+      "- Power per cohort: ≥ %.1f%% (at alternative response rate)\n",
+      (1 - design$beta) * 100
+    ))
+    oc_text <- paste0(oc_text, sprintf(
+      "- Expected sample size: Minimized under H0 (%s design)\n\n",
+      design$design_type
+    ))
+  }
+  
+  # References
+  ref_text <- ""
+  if (include_references) {
+    ref_text <- "\n## References\n\n"
+    ref_text <- paste0(ref_text,
+      "1. Simon R. Optimal two-stage designs for phase II clinical trials. Control Clin Trials. 1989;10(1):1-10.\n",
+      "2. Jung SH, Lee T, Kim K, George SL. Admissible two-stage designs for phase II cancer clinical trials. Stat Med. 2004;23(4):561-569.\n",
+      "3. Korn EL, Freidlin B, Abrams JS, Halabi S. Design issues in randomized phase II/III trials. J Clin Oncol. 2012;30(6):667-671.\n"
+    )
+  }
+  
+  # Combine all sections
+  title <- if (design$n_baskets == 1) {
+    "# Simon Two-Stage Design\n\n"
+  } else {
+    "# Simon Two-Stage Design for Multi-Cohort Trial\n\n"
+  }
+  
+  protocol_text <- paste0(
+    title,
+    "## Trial Overview\n\n",
+    intro,
+    cohort_desc,
+    sample_size_text,
+    stat_approach,
+    hypothesis_text,
+    multiple_testing_text,
+    decision_text,
+    oc_text,
+    ref_text
+  )
+  
+  return(protocol_text)
 }
