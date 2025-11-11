@@ -70,8 +70,9 @@
 * doFuture backend registration in test setup to suppress foreach messages
 * Tests gracefully skip when optional method packages (bmabasket, basket, bhmbasket) are not available  
 * Test setup pre-loads optional packages to detect platform-specific issues before tests run
-* CI workflow tests package loadability on macOS ARM64 and removes packages that cannot be loaded
-* Custom skip function checks pre-loaded package availability to prevent runtime segfaults
+* CI workflow functionally tests optional packages on macOS ARM64 with real data
+* Packages with broken compiled code from external packages (e.g., bmabasket C++ segfault on ARM64) are automatically removed before testing
+* Custom skip function checks pre-loaded package availability to prevent runtime crashes
 
 ### Documentation
 

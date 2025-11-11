@@ -55,24 +55,25 @@ jobs:
           echo "Testing optional packages on macOS ARM64"
           echo "========================================="
           
-          # Function to test package loading with background process and timeout
+          # Function to test package with actual function calls (not just loading)
           test_package() {
             local pkg=$1
+            local test_code=$2
             echo ""
             echo "Testing $pkg..."
             
-            # Run in background and get PID
-            Rscript -e "loadNamespace('$pkg'); cat('LOADED_OK\n')" > /tmp/test_${pkg}.log 2>&1 &
+            # Run test in background and get PID
+            Rscript -e "$test_code" > /tmp/test_${pkg}.log 2>&1 &
             local pid=$!
             
-            # Wait up to 5 seconds
+            # Wait up to 10 seconds
             local count=0
-            while kill -0 $pid 2>/dev/null && [ $count -lt 50 ]; do
+            while kill -0 $pid 2>/dev/null && [ $count -lt 100 ]; do
               sleep 0.1
               count=$((count + 1))
             done
             
-            # Check if still running
+            # Check if still running (hung/segfaulted)
             if kill -0 $pid 2>/dev/null; then
               echo "✗ $pkg timed out, killing process..."
               kill -9 $pid 2>/dev/null || true
@@ -84,8 +85,8 @@ jobs:
             # Check result
             wait $pid
             local exitcode=$?
-            if [ $exitcode -eq 0 ] && grep -q "LOADED_OK" /tmp/test_${pkg}.log 2>/dev/null; then
-              echo "✓ $pkg loaded successfully"
+            if [ $exitcode -eq 0 ] && grep -q "TEST_OK" /tmp/test_${pkg}.log 2>/dev/null; then
+              echo "✓ $pkg works correctly"
               return 0
             else
               echo "✗ $pkg failed (exit: $exitcode), removing..."
@@ -95,10 +96,29 @@ jobs:
             fi
           }
           
-          # Test each package
-          test_package "bmabasket"
-          test_package "basket"
-          test_package "bhmbasket"
+          # Test bmabasket with actual BMA computation (catches C++ bugs)
+          test_package "bmabasket" "
+            loadNamespace('bmabasket')
+            tryCatch({
+              result <- bmabasket::bma(pi0=0.15, y=c(2,3,1), n=c(10,10,10), P=3)
+              cat('TEST_OK\n')
+            }, error=function(e) { cat('ERROR:', conditionMessage(e), '\n'); quit(status=1) })
+          "
+          
+          # Test basket with actual MEM analysis
+          test_package "basket" "
+            loadNamespace('basket')
+            tryCatch({
+              result <- basket::mem(responses=c(2,3,1), size=c(10,10,10), name=paste0('B',1:3))
+              cat('TEST_OK\n')
+            }, error=function(e) { cat('ERROR:', conditionMessage(e), '\n'); quit(status=1) })
+          "
+          
+          # Test bhmbasket with loading (JAGS may not be installed)
+          test_package "bhmbasket" "
+            loadNamespace('bhmbasket')
+            cat('TEST_OK\n')
+          "
           
           echo ""
           echo "========================================="
