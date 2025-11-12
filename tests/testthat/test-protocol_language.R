@@ -117,3 +117,149 @@ test_that("generate_protocol_language handles technical details", {
   )
   expect_false(grepl("Technical Details", text_no_details))
 })
+
+
+test_that("generate_protocol_language works for single Simon design", {
+  skip_if_pkg_not_available("clinfun")
+  
+  design <- simon_design(
+    n_baskets = 1,
+    basket_names = "NSCLC",
+    sample_sizes = 43,
+    null_response_rates = 0.20,
+    alternative_response_rates = 0.40,
+    alpha = 0.10,
+    beta = 0.20,
+    design_type = "optimal"
+  )
+  
+  protocol_text <- generate_protocol_language(design)
+  
+  expect_type(protocol_text, "character")
+  expect_gt(nchar(protocol_text), 100)
+  
+  # Check key sections for single Simon design
+  expect_match(protocol_text, "Simon Two-Stage Design")
+  expect_match(protocol_text, "gold standard")
+  expect_match(protocol_text, "Trial Overview")
+  expect_match(protocol_text, "Trial Population")
+  expect_match(protocol_text, "Statistical Methodology")
+  expect_match(protocol_text, "Decision Criteria")
+  
+  # Check for detailed decision criteria language
+  expect_match(protocol_text, "Stage 1 Enrollment")
+  expect_match(protocol_text, "Stage 2 Enrollment")
+  expect_match(protocol_text, "\\(r1 \\+ 1\\) or more")
+  expect_match(protocol_text, "\\(r \\+ 1\\) or more")
+  expect_match(protocol_text, "accrual will be held")
+  
+  # Check it mentions improvement from null to alternative
+  expect_match(protocol_text, "20.0%")
+  expect_match(protocol_text, "40.0%")
+  
+  # Single design should NOT mention Bonferroni
+  expect_false(grepl("Bonferroni", protocol_text))
+  
+  # Should mention Type I error control for single design
+  expect_match(protocol_text, "Type I Error Control")
+  expect_match(protocol_text, "alpha = 0.100")
+})
+
+
+test_that("generate_protocol_language works for multi-cohort Simon design", {
+  skip_if_pkg_not_available("clinfun")
+  
+  design <- simon_design(
+    n_baskets = 4,
+    basket_names = c("NSCLC", "SCLC", "Melanoma", "RCC"),
+    sample_sizes = 25,
+    null_response_rates = 0.20,
+    alternative_response_rates = 0.40,
+    alpha = 0.0125,  # Bonferroni-adjusted
+    beta = 0.20,
+    design_type = "optimal"
+  )
+  
+  protocol_text <- generate_protocol_language(design)
+  
+  expect_type(protocol_text, "character")
+  expect_gt(nchar(protocol_text), 100)
+  
+  # Check key sections for multi-cohort design
+  expect_match(protocol_text, "Multi-Cohort Trial")
+  expect_match(protocol_text, "Trial Cohorts")
+  expect_match(protocol_text, "independent")
+  expect_match(protocol_text, "4 cancer types")
+  
+  # Multi-cohort with small alpha should mention Bonferroni
+  expect_match(protocol_text, "Bonferroni")
+  expect_match(protocol_text, "Multiple Testing")
+  
+  # Should list all cohorts
+  expect_match(protocol_text, "NSCLC")
+  expect_match(protocol_text, "SCLC")
+  expect_match(protocol_text, "Melanoma")
+  expect_match(protocol_text, "RCC")
+})
+
+
+test_that("generate_protocol_language for Simon handles references", {
+  skip_if_pkg_not_available("clinfun")
+  
+  design <- simon_design(
+    n_baskets = 1,
+    basket_names = "Test",
+    sample_sizes = 30,
+    null_response_rates = 0.20,
+    alternative_response_rates = 0.40,
+    alpha = 0.10,
+    beta = 0.20,
+    design_type = "optimal"
+  )
+  
+  # With references
+  text_with_refs <- generate_protocol_language(design, include_references = TRUE)
+  expect_match(text_with_refs, "References")
+  expect_match(text_with_refs, "Simon R")
+  expect_match(text_with_refs, "1989")
+  
+  # Without references
+  text_no_refs <- generate_protocol_language(design, include_references = FALSE)
+  expect_false(grepl("References", text_no_refs))
+})
+
+
+test_that("generate_protocol_language for Simon detects Bonferroni correctly", {
+  skip_if_pkg_not_available("clinfun")
+  
+  # Large alpha - should suggest Bonferroni
+  design_large_alpha <- simon_design(
+    n_baskets = 4,
+    basket_names = c("A", "B", "C", "D"),
+    sample_sizes = 25,
+    null_response_rates = 0.20,
+    alternative_response_rates = 0.40,
+    alpha = 0.05,  # NOT Bonferroni-adjusted
+    beta = 0.20,
+    design_type = "optimal"
+  )
+  
+  text_large <- generate_protocol_language(design_large_alpha)
+  expect_match(text_large, "family-wise error rate")
+  expect_match(text_large, "consider using")
+  
+  # Small alpha - should say Bonferroni applied
+  design_small_alpha <- simon_design(
+    n_baskets = 4,
+    basket_names = c("A", "B", "C", "D"),
+    sample_sizes = 25,
+    null_response_rates = 0.20,
+    alternative_response_rates = 0.40,
+    alpha = 0.0125,  # Bonferroni-adjusted (0.05/4)
+    beta = 0.20,
+    design_type = "optimal"
+  )
+  
+  text_small <- generate_protocol_language(design_small_alpha)
+  expect_match(text_small, "Bonferroni correction is applied")
+})
