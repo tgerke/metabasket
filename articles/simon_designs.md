@@ -151,14 +151,14 @@ cat(protocol_text)
 #> 
 #> We test:
 #> 
-#> H0: π ≤ 0.20 (the treatment is not efficacious)
-#> H1: π > 0.20 (the treatment is efficacious)
+#> H0: p <= 0.20 (the treatment is not efficacious)
+#> H1: p > 0.20 (the treatment is efficacious)
 #> 
-#> where π represents the true response rate.
+#> where p represents the true response rate.
 #> 
 #> ### Type I Error Control
 #> 
-#> The design is calibrated to achieve a Type I error rate of α = 0.100, meaning there is at most a 10.0% probability of concluding the treatment is efficacious when the true response rate is at or below the null hypothesis value.
+#> The design is calibrated to achieve a Type I error rate of alpha = 0.100, meaning there is at most a 10.0% probability of concluding the treatment is efficacious when the true response rate is at or below the null hypothesis value.
 #> 
 #> ### Decision Criteria
 #> 
@@ -185,8 +185,8 @@ cat(protocol_text)
 #> ## Operating Characteristics
 #> 
 #> The design has been calibrated to achieve:
-#> - Type I error rate: α = 0.100 (10.0% probability of false positive)
-#> - Power: ≥ 80.0% (at alternative response rate of 40.0%)
+#> - Type I error rate: alpha = 0.100 (10.0% probability of false positive)
+#> - Power: >= 80.0% (at alternative response rate of 40.0%)
 #> - Expected sample size: Minimized under H0 (optimal design)
 #> 
 #> 
@@ -308,19 +308,19 @@ cat(protocol_text_basket)
 #> 
 #> For each cohort j (j = 1, ..., 4), we test:
 #> 
-#> H0: π_j ≤ p0 (the treatment is not efficacious)
-#> H1: π_j > p0 (the treatment is efficacious)
+#> H0: p_j <= p0 (the treatment is not efficacious)
+#> H1: p_j > p0 (the treatment is efficacious)
 #> 
-#> where π_j represents the true response rate for cohort j and p0 is the null response rate.
+#> where p_j represents the true response rate for cohort j and p0 is the null response rate.
 #> 
 #> ### Multiple Testing Adjustment
 #> 
-#> To control the family-wise error rate (FWER) across 4 cohorts, a Bonferroni correction is applied. Each individual cohort is tested at significance level α = 0.0125. This ensures that the probability of falsely rejecting H0 for at least one cohort is controlled when all null hypotheses are true.
+#> To control the family-wise error rate (FWER) across 4 cohorts, a Bonferroni correction is applied. Each individual cohort is tested at significance level alpha = 0.0125. This ensures that the probability of falsely rejecting H0 for at least one cohort is controlled when all null hypotheses are true.
 #> 
 #> ### Decision Criteria
 #> 
 #> **Stage 1 Decision (Futility)**:
-#> For each cohort, if the number of responses in the first n1 patients is ≤ r1, enrollment to that cohort stops and the treatment is declared not promising for that cohort. Cohorts may continue accrual uninterrupted if (r1 + 1) or more responses are observed before reaching n1 patients.
+#> For each cohort, if the number of responses in the first n1 patients is <= r1, enrollment to that cohort stops and the treatment is declared not promising for that cohort. Cohorts may continue accrual uninterrupted if (r1 + 1) or more responses are observed before reaching n1 patients.
 #> 
 #> **Final Decision (Efficacy)**:
 #> For cohorts that continue to Stage 2, if the total number of responses is (r + 1) or more across all n patients, the treatment is declared promising for that cohort (H0 is rejected).
@@ -328,8 +328,8 @@ cat(protocol_text_basket)
 #> ## Operating Characteristics
 #> 
 #> The design has been calibrated to achieve:
-#> - Type I error rate per cohort: α = 0.0125
-#> - Power per cohort: ≥ 80.0% (at alternative response rate)
+#> - Type I error rate per cohort: alpha = 0.0125
+#> - Power per cohort: >= 80.0% (at alternative response rate)
 #> - Expected sample size: Minimized under H0 (optimal design)
 #> 
 #> 

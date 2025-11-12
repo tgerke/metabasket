@@ -226,14 +226,14 @@ regulatory submissions:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; We test:</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; H0: π ≤ 0.20 (the treatment is not efficacious)</span></span>
-<span><span class="co">#&gt; H1: π &gt; 0.20 (the treatment is efficacious)</span></span>
+<span><span class="co">#&gt; H0: p &lt;= 0.20 (the treatment is not efficacious)</span></span>
+<span><span class="co">#&gt; H1: p &gt; 0.20 (the treatment is efficacious)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; where π represents the true response rate.</span></span>
+<span><span class="co">#&gt; where p represents the true response rate.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ### Type I Error Control</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; The design is calibrated to achieve a Type I error rate of α = 0.100, meaning there is at most a 10.0% probability of concluding the treatment is efficacious when the true response rate is at or below the null hypothesis value.</span></span>
+<span><span class="co">#&gt; The design is calibrated to achieve a Type I error rate of alpha = 0.100, meaning there is at most a 10.0% probability of concluding the treatment is efficacious when the true response rate is at or below the null hypothesis value.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ### Decision Criteria</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -260,8 +260,8 @@ regulatory submissions:</p>
 <span><span class="co">#&gt; ## Operating Characteristics</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; The design has been calibrated to achieve:</span></span>
-<span><span class="co">#&gt; - Type I error rate: α = 0.100 (10.0% probability of false positive)</span></span>
-<span><span class="co">#&gt; - Power: ≥ 80.0% (at alternative response rate of 40.0%)</span></span>
+<span><span class="co">#&gt; - Type I error rate: alpha = 0.100 (10.0% probability of false positive)</span></span>
+<span><span class="co">#&gt; - Power: &gt;= 80.0% (at alternative response rate of 40.0%)</span></span>
 <span><span class="co">#&gt; - Expected sample size: Minimized under H0 (optimal design)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -384,19 +384,19 @@ information borrowing):</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; For each cohort j (j = 1, ..., 4), we test:</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; H0: π_j ≤ p0 (the treatment is not efficacious)</span></span>
-<span><span class="co">#&gt; H1: π_j &gt; p0 (the treatment is efficacious)</span></span>
+<span><span class="co">#&gt; H0: p_j &lt;= p0 (the treatment is not efficacious)</span></span>
+<span><span class="co">#&gt; H1: p_j &gt; p0 (the treatment is efficacious)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; where π_j represents the true response rate for cohort j and p0 is the null response rate.</span></span>
+<span><span class="co">#&gt; where p_j represents the true response rate for cohort j and p0 is the null response rate.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ### Multiple Testing Adjustment</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; To control the family-wise error rate (FWER) across 4 cohorts, a Bonferroni correction is applied. Each individual cohort is tested at significance level α = 0.0125. This ensures that the probability of falsely rejecting H0 for at least one cohort is controlled when all null hypotheses are true.</span></span>
+<span><span class="co">#&gt; To control the family-wise error rate (FWER) across 4 cohorts, a Bonferroni correction is applied. Each individual cohort is tested at significance level alpha = 0.0125. This ensures that the probability of falsely rejecting H0 for at least one cohort is controlled when all null hypotheses are true.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ### Decision Criteria</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; **Stage 1 Decision (Futility)**:</span></span>
-<span><span class="co">#&gt; For each cohort, if the number of responses in the first n1 patients is ≤ r1, enrollment to that cohort stops and the treatment is declared not promising for that cohort. Cohorts may continue accrual uninterrupted if (r1 + 1) or more responses are observed before reaching n1 patients.</span></span>
+<span><span class="co">#&gt; For each cohort, if the number of responses in the first n1 patients is &lt;= r1, enrollment to that cohort stops and the treatment is declared not promising for that cohort. Cohorts may continue accrual uninterrupted if (r1 + 1) or more responses are observed before reaching n1 patients.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; **Final Decision (Efficacy)**:</span></span>
 <span><span class="co">#&gt; For cohorts that continue to Stage 2, if the total number of responses is (r + 1) or more across all n patients, the treatment is declared promising for that cohort (H0 is rejected).</span></span>
@@ -404,8 +404,8 @@ information borrowing):</p>
 <span><span class="co">#&gt; ## Operating Characteristics</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; The design has been calibrated to achieve:</span></span>
-<span><span class="co">#&gt; - Type I error rate per cohort: α = 0.0125</span></span>
-<span><span class="co">#&gt; - Power per cohort: ≥ 80.0% (at alternative response rate)</span></span>
+<span><span class="co">#&gt; - Type I error rate per cohort: alpha = 0.0125</span></span>
+<span><span class="co">#&gt; - Power per cohort: &gt;= 80.0% (at alternative response rate)</span></span>
 <span><span class="co">#&gt; - Expected sample size: Minimized under H0 (optimal design)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
